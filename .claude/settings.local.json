@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "PowerShell(\"=== app tree ===\"; Get-ChildItem \"D:\\\\coding\\\\kesehatanmysql\\\\app\" -Recurse -File | ForEach-Object { $_.FullName.Replace\\(\"D:\\\\coding\\\\kesehatanmysql\\\\\",\"\"\\) })"
-    ]
-  }
-}

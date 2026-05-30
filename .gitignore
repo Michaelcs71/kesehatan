@@ -22,3 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Local Claude Code settings (per-machine)
+/.claude/settings.local.json
+
+# Pre-migration (SQLite) backup, kept on disk only
+/app_backup_before_mysql
