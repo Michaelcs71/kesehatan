@@ -37,6 +37,19 @@ ulang. Keamanan mengandalkan kunci layar device, bukan logout agresif (device pr
 
 Semua angka menit disimpan di `config/pengingat.php` agar mudah diubah tanpa migrasi.
 
+### 2.1 Cakupan implementasi tahap ini (MO dulu, CGD menyusul)
+
+Temuan skema: `jadwal_minum_obats` punya `id_pasien_pmo` (tautan pasien/PMO jelas),
+tetapi `jadwal_cgds` **belum punya** kolom apa pun yang menautkan jadwal ke pasien, dan
+modelnya satu-kali (`tgl_jadwal_cgd` + `jam_mulai`), bukan harian-berulang seperti MO.
+Karena itu pengingat CGD belum bisa menentukan penerima.
+
+**Keputusan:** implementasi tahap ini fokus **Minum Obat (MO)** sampai jadi. Mesin
+(`pengingat_kejadian` dengan kolom `jenis`, tick, job, kanal) dibuat **generik** sehingga
+CGD tinggal dicolok di kemudian hari setelah tautan pasien CGD diberesi (mis. menambah
+`id_pasien_pmo` ke `jadwal_cgds`). Tabel & enum tetap menyertakan nilai `cgd`, tetapi
+materialisasi & konfirmasi CGD adalah pekerjaan lanjutan di luar tahap ini.
+
 ## 3. Arsitektur: Opsi A — Tabel Kejadian + Scheduler tiap menit
 
 Jadwal hanya menyimpan *aturan* (jam_mulai + frekuensi). Karena pengingat berulang +
