@@ -12,6 +12,15 @@
 
             <div class="flex-grow-1"></div>
 
+            {{-- Tombol Aktifkan Pengingat (hanya untuk pasien) --}}
+            @auth
+                @if(auth()->user()->isPasien())
+                    <button id="btn-aktifkan-pengingat" type="button" class="btn btn-sm btn-primary me-3">
+                        <i class="ri-notification-3-line"></i> Aktifkan Pengingat
+                    </button>
+                @endif
+            @endauth
+
             {{-- USER DROPDOWN --}}
             <div class="dropdown">
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center"

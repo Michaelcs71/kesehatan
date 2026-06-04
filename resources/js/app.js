@@ -15,6 +15,7 @@ import Chart from "chart.js/auto"; // 👈 TAMBAHIN
 window.Chart = Chart; // 👈 TAMBAHIN
 import { DataGrid } from "./datatable-helper";
 window.DataGrid = DataGrid;
+import './pengingat-push.js';
 
 jQuery.ajaxSetup({
     headers: {
