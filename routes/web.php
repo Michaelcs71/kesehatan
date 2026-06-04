@@ -10,6 +10,10 @@ use App\Http\Controllers\JadwalMinumObatController;
 use App\Http\Controllers\JadwalCgdController;
 use App\Http\Controllers\PengingatMoLogController;
 use App\Http\Controllers\PengingatCgdLogController;
+use App\Http\Controllers\PublicContentController;
+use App\Http\Controllers\KontenPengumumanController;
+use App\Http\Controllers\KontenEdukasiController;
+use App\Http\Controllers\KontenGaleriController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,9 +27,10 @@ Route::get('/', function () {
     return view('landing.index');
 })->name('home');
 
-Route::view('/pengumuman', 'public.pengumuman')->name('public.pengumuman');
-Route::view('/edukasi', 'public.edukasi')->name('public.edukasi');
-Route::view('/galery', 'public.galery')->name('public.galery');
+Route::get('/pengumuman', [PublicContentController::class, 'pengumuman'])->name('public.pengumuman');
+Route::get('/edukasi', [PublicContentController::class, 'edukasi'])->name('public.edukasi');
+Route::get('/edukasi/{slug}', [PublicContentController::class, 'edukasiShow'])->name('public.edukasi.show');
+Route::get('/galery', [PublicContentController::class, 'galery'])->name('public.galery');
 
 // AUTH ROUTER
 Route::get('/dashboard', function () {
@@ -578,22 +583,161 @@ Route::middleware(['auth', 'verified', 'role:admin,superadmin'])
         Route::view('/transaksi/alat-cgd', 'placeholder')->name('transaksi.alat_cgd')
             ->defaults('meta', ['title' => 'Foto Alat CGD']);
 
-        Route::view('/konten/pengumuman', 'placeholder')->name('konten.pengumuman')
-            ->defaults('meta', ['title' => 'Pengumuman']);
-        Route::view('/konten/edukasi', 'placeholder')->name('konten.edukasi')
-            ->defaults('meta', ['title' => 'Edukasi']);
-        Route::view('/konten/galery', 'placeholder')->name('konten.galery')
-            ->defaults('meta', ['title' => 'Galery']);
-
-        Route::view('/laporan/kepatuhan', 'placeholder')->name('laporan.kepatuhan')
-            ->defaults('meta', ['title' => 'Laporan Kepatuhan']);
+        Route::get('/laporan/kepatuhan', [\App\Http\Controllers\LaporanController::class, 'kepatuhan'])
+            ->name('laporan.kepatuhan')
+            ->middleware('permission:laporan-kepatuhan.index');
     });
+
+/*
+|--------------------------------------------------------------------------
+| KONTEN PUBLIK — PENGUMUMAN
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('konten-pengumuman')->name('konten-pengumuman.')->group(function () {
+
+        Route::middleware('permission:konten-pengumuman.index')->group(function () {
+            Route::get('/', [KontenPengumumanController::class, 'index'])->name('index');
+            Route::get('/data', [KontenPengumumanController::class, 'getData'])->name('data');
+        });
+
+        Route::middleware('permission:konten-pengumuman.create')->group(function () {
+            Route::get('/create', [KontenPengumumanController::class, 'create'])->name('create');
+            Route::post('/', [KontenPengumumanController::class, 'store'])->name('store');
+        });
+
+        Route::middleware('permission:konten-pengumuman.show')->group(function () {
+            Route::get('/{id}', [KontenPengumumanController::class, 'show'])->name('show')
+                ->where('id', '[0-9a-f\-]+');
+            Route::get('/{id}/data', [KontenPengumumanController::class, 'showData'])->name('show-data')
+                ->where('id', '[0-9a-f\-]+');
+        });
+
+        Route::middleware('permission:konten-pengumuman.edit')->group(function () {
+            Route::get('/{id}/edit', [KontenPengumumanController::class, 'edit'])->name('edit')
+                ->where('id', '[0-9a-f\-]+');
+            Route::put('/{id}', [KontenPengumumanController::class, 'update'])->name('update')
+                ->where('id', '[0-9a-f\-]+');
+            Route::patch('/{id}', [KontenPengumumanController::class, 'update'])
+                ->where('id', '[0-9a-f\-]+');
+        });
+
+        Route::delete('/{id}', [KontenPengumumanController::class, 'destroy'])
+            ->name('destroy')
+            ->where('id', '[0-9a-f\-]+')
+            ->middleware('permission:konten-pengumuman.delete');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| KONTEN PUBLIK — EDUKASI
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('konten-edukasi')->name('konten-edukasi.')->group(function () {
+
+        Route::middleware('permission:konten-edukasi.index')->group(function () {
+            Route::get('/', [KontenEdukasiController::class, 'index'])->name('index');
+            Route::get('/data', [KontenEdukasiController::class, 'getData'])->name('data');
+        });
+
+        Route::middleware('permission:konten-edukasi.create')->group(function () {
+            Route::get('/create', [KontenEdukasiController::class, 'create'])->name('create');
+            Route::post('/', [KontenEdukasiController::class, 'store'])->name('store');
+        });
+
+        Route::middleware('permission:konten-edukasi.show')->group(function () {
+            Route::get('/{id}', [KontenEdukasiController::class, 'show'])->name('show')
+                ->where('id', '[0-9a-f\-]+');
+            Route::get('/{id}/data', [KontenEdukasiController::class, 'showData'])->name('show-data')
+                ->where('id', '[0-9a-f\-]+');
+        });
+
+        Route::middleware('permission:konten-edukasi.edit')->group(function () {
+            Route::get('/{id}/edit', [KontenEdukasiController::class, 'edit'])->name('edit')
+                ->where('id', '[0-9a-f\-]+');
+            Route::put('/{id}', [KontenEdukasiController::class, 'update'])->name('update')
+                ->where('id', '[0-9a-f\-]+');
+            Route::patch('/{id}', [KontenEdukasiController::class, 'update'])
+                ->where('id', '[0-9a-f\-]+');
+        });
+
+        Route::delete('/{id}', [KontenEdukasiController::class, 'destroy'])
+            ->name('destroy')
+            ->where('id', '[0-9a-f\-]+')
+            ->middleware('permission:konten-edukasi.delete');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| KONTEN PUBLIK — GALERI
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('konten-galery')->name('konten-galery.')->group(function () {
+
+        Route::middleware('permission:konten-galery.index')->group(function () {
+            Route::get('/', [KontenGaleriController::class, 'index'])->name('index');
+            Route::get('/data', [KontenGaleriController::class, 'getData'])->name('data');
+        });
+
+        Route::middleware('permission:konten-galery.create')->group(function () {
+            Route::get('/create', [KontenGaleriController::class, 'create'])->name('create');
+            Route::post('/', [KontenGaleriController::class, 'store'])->name('store');
+        });
+
+        Route::middleware('permission:konten-galery.show')->group(function () {
+            Route::get('/{id}', [KontenGaleriController::class, 'show'])->name('show')
+                ->where('id', '[0-9a-f\-]+');
+            Route::get('/{id}/data', [KontenGaleriController::class, 'showData'])->name('show-data')
+                ->where('id', '[0-9a-f\-]+');
+        });
+
+        Route::middleware('permission:konten-galery.edit')->group(function () {
+            Route::get('/{id}/edit', [KontenGaleriController::class, 'edit'])->name('edit')
+                ->where('id', '[0-9a-f\-]+');
+            Route::put('/{id}', [KontenGaleriController::class, 'update'])->name('update')
+                ->where('id', '[0-9a-f\-]+');
+            Route::patch('/{id}', [KontenGaleriController::class, 'update'])
+                ->where('id', '[0-9a-f\-]+');
+        });
+
+        Route::delete('/{id}', [KontenGaleriController::class, 'destroy'])
+            ->name('destroy')
+            ->where('id', '[0-9a-f\-]+')
+            ->middleware('permission:konten-galery.delete');
+    });
+});
 
 // PROFILE
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| WEB PUSH — SUBSCRIBE / UNSUBSCRIBE
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+});
+
+/*
+|--------------------------------------------------------------------------
+| PENGINGAT — KONFIRMASI MINUM OBAT
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/pengingat/{kejadian}/konfirmasi', [\App\Http\Controllers\KonfirmasiPengingatController::class, 'show'])
+        ->name('pengingat.konfirmasi.show')->where('kejadian', '[0-9a-f\-]+');
+    Route::post('/pengingat/{kejadian}/konfirmasi', [\App\Http\Controllers\KonfirmasiPengingatController::class, 'store'])
+        ->name('pengingat.konfirmasi.store')->where('kejadian', '[0-9a-f\-]+');
 });
 
 require __DIR__ . '/auth.php';
