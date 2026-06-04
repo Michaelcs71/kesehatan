@@ -15,8 +15,8 @@ class WebPushSender
         if ($this->webPush === null) {
             $this->webPush = new WebPush([
                 'VAPID' => [
-                    'subject'    => config('pengingat.vapid.subject'),
-                    'publicKey'  => config('pengingat.vapid.public_key'),
+                    'subject' => config('pengingat.vapid.subject'),
+                    'publicKey' => config('pengingat.vapid.public_key'),
                     'privateKey' => config('pengingat.vapid.private_key'),
                 ],
             ]);
@@ -27,7 +27,8 @@ class WebPushSender
 
     /**
      * Kirim payload ke seluruh subscription milik user.
-     * @param array{judul:string,isi:string,url:string} $payload
+     *
+     * @param  array{judul:string,isi:string,url:string}  $payload
      * @return int jumlah notifikasi yang dikirim (di-queue)
      */
     public function kirimKeUser(string $userId, array $payload): int
@@ -40,15 +41,15 @@ class WebPushSender
         $client = $this->client();
         $body = json_encode([
             'title' => $payload['judul'],
-            'body'  => $payload['isi'],
-            'url'   => $payload['url'],
+            'body' => $payload['isi'],
+            'url' => $payload['url'],
         ]);
 
         foreach ($subs as $sub) {
             $client->queueNotification(
                 Subscription::create([
                     'endpoint' => $sub->endpoint,
-                    'keys'     => ['p256dh' => $sub->public_key, 'auth' => $sub->auth_token],
+                    'keys' => ['p256dh' => $sub->public_key, 'auth' => $sub->auth_token],
                 ]),
                 $body,
             );

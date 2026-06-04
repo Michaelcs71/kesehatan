@@ -14,7 +14,7 @@ class PengingatTick extends Command
     public function handle(): int
     {
         PengingatTickService::jalankan();
-        $this->info('pengingat:tick selesai pada ' . now()->format('Y-m-d H:i:s'));
+        $this->info('pengingat:tick selesai pada '.now()->format('Y-m-d H:i:s'));
 
         return self::SUCCESS;
     }

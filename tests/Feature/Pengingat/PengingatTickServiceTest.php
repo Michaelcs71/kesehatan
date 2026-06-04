@@ -23,7 +23,7 @@ class PengingatTickServiceTest extends TestCase
 
     public function test_materialisasi_membuat_kejadian_untuk_slot_yang_lewat(): void
     {
-        Carbon::setTestNow(Carbon::parse(now()->toDateString() . ' 08:05:00'));
+        Carbon::setTestNow(Carbon::parse(now()->toDateString().' 08:05:00'));
         JadwalMinumObat::factory()->create(['jam_mulai' => '08:00:00', 'frekuensi_per_hari' => 1, 'tgl_mulai' => now()->subDay()->toDateString()]);
 
         PengingatTickService::materialisasiMo();
@@ -34,7 +34,7 @@ class PengingatTickServiceTest extends TestCase
 
     public function test_materialisasi_idempoten_walau_dipanggil_dua_kali(): void
     {
-        Carbon::setTestNow(Carbon::parse(now()->toDateString() . ' 08:05:00'));
+        Carbon::setTestNow(Carbon::parse(now()->toDateString().' 08:05:00'));
         JadwalMinumObat::factory()->create(['jam_mulai' => '08:00:00', 'frekuensi_per_hari' => 1, 'tgl_mulai' => now()->subDay()->toDateString()]);
 
         PengingatTickService::materialisasiMo();
@@ -45,7 +45,7 @@ class PengingatTickServiceTest extends TestCase
 
     public function test_materialisasi_abaikan_slot_belum_tiba(): void
     {
-        Carbon::setTestNow(Carbon::parse(now()->toDateString() . ' 07:00:00'));
+        Carbon::setTestNow(Carbon::parse(now()->toDateString().' 07:00:00'));
         JadwalMinumObat::factory()->create(['jam_mulai' => '08:00:00', 'frekuensi_per_hari' => 1, 'tgl_mulai' => now()->subDay()->toDateString()]);
 
         PengingatTickService::materialisasiMo();

@@ -19,11 +19,12 @@ class CloudApiWhatsAppSenderTest extends TestCase
             'graph.facebook.com/*' => Http::response(['messages' => [['id' => 'wamid.X']]], 200),
         ]);
 
-        $ok = (new CloudApiWhatsAppSender())->kirimTemplate('628123', 'pengingat_obat', ['Budi', 'Metformin', '08:00', 'https://x']);
+        $ok = (new CloudApiWhatsAppSender)->kirimTemplate('628123', 'pengingat_obat', ['Budi', 'Metformin', '08:00', 'https://x']);
 
         $this->assertTrue($ok);
         Http::assertSent(function ($request) {
             $body = $request->data();
+
             return str_contains($request->url(), '/123/messages')
                 && $request->hasHeader('Authorization', 'Bearer TOKEN')
                 && $body['type'] === 'template'
@@ -40,7 +41,7 @@ class CloudApiWhatsAppSenderTest extends TestCase
         ]);
         Http::fake(['graph.facebook.com/*' => Http::response(['error' => 'x'], 400)]);
 
-        $ok = (new CloudApiWhatsAppSender())->kirimTemplate('628', 'pengingat_obat', ['a']);
+        $ok = (new CloudApiWhatsAppSender)->kirimTemplate('628', 'pengingat_obat', ['a']);
 
         $this->assertFalse($ok);
     }

@@ -24,7 +24,7 @@ class KonfirmasiPengingatTest extends TestCase
         return PengingatKejadian::create([
             'jenis' => 'mo', 'jadwal_id' => $jadwal->id, 'id_pasien_pmo' => $pp->id,
             'user_pasien_id' => $pasien->id, 'user_pmo_id' => $pp->pmo_user_id,
-            'waktu_jadwal' => Carbon::parse(now()->toDateString() . ' 08:00:00'),
+            'waktu_jadwal' => Carbon::parse(now()->toDateString().' 08:00:00'),
             'status' => PengingatKejadian::STATUS_MENUNGGU,
         ]);
     }

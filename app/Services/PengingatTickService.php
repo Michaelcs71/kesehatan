@@ -14,14 +14,15 @@ class PengingatTickService
 {
     /**
      * Keputusan murni untuk satu kejadian (tanpa side-effect).
+     *
      * @return array{keputusan:string,aksi:array<int,array{kanal:string,target:string}>}
      */
     public static function tentukanAksi(PengingatKejadian $k, Carbon $now): array
     {
-        $batasAkhir   = (int) config('pengingat.batas_akhir_menit');
+        $batasAkhir = (int) config('pengingat.batas_akhir_menit');
         $intervalUlang = (int) config('pengingat.interval_ulang_menit');
-        $waPasienMnt  = (int) config('pengingat.wa_pasien_setelah_menit');
-        $waPmoMnt     = (int) config('pengingat.wa_pmo_setelah_menit');
+        $waPasienMnt = (int) config('pengingat.wa_pasien_setelah_menit');
+        $waPmoMnt = (int) config('pengingat.wa_pmo_setelah_menit');
 
         $selisih = intdiv($now->getTimestamp() - $k->waktu_jadwal->getTimestamp(), 60);
 
@@ -37,7 +38,7 @@ class PengingatTickService
         }
 
         $pasienPunyaPush = PushSubscription::where('user_id', $k->user_pasien_id)->exists();
-        $pmoPunyaPush    = $k->user_pmo_id && PushSubscription::where('user_id', $k->user_pmo_id)->exists();
+        $pmoPunyaPush = $k->user_pmo_id && PushSubscription::where('user_id', $k->user_pmo_id)->exists();
 
         $aksi = [];
 
@@ -76,9 +77,9 @@ class PengingatTickService
 
     public static function materialisasiMo(): void
     {
-        $now    = Carbon::now();
+        $now = Carbon::now();
         $hariIni = $now->toDateString();
-        $batas  = (int) config('pengingat.batas_akhir_menit');
+        $batas = (int) config('pengingat.batas_akhir_menit');
 
         JadwalMinumObat::query()->active()
             ->with('pasienPmo')
@@ -87,7 +88,7 @@ class PengingatTickService
                 foreach ($jadwals as $jadwal) {
                     $pp = $jadwal->pasienPmo;
                     foreach ($jadwal->slot_jam_harian as $slot) {
-                        $waktu = Carbon::parse($hariIni . ' ' . $slot . ':00');
+                        $waktu = Carbon::parse($hariIni.' '.$slot.':00');
 
                         $selisih = intdiv($now->getTimestamp() - $waktu->getTimestamp(), 60);
                         if ($selisih < 0 || $selisih > $batas) {
@@ -95,9 +96,9 @@ class PengingatTickService
                         }
 
                         PengingatKejadianRepository::firstOrCreateUntukSlot('mo', $jadwal->id, $waktu, [
-                            'id_pasien_pmo'  => $jadwal->id_pasien_pmo,
+                            'id_pasien_pmo' => $jadwal->id_pasien_pmo,
                             'user_pasien_id' => $pp?->id_user,
-                            'user_pmo_id'    => $pp?->pmo_user_id,
+                            'user_pmo_id' => $pp?->pmo_user_id,
                         ]);
                     }
                 }
@@ -114,6 +115,7 @@ class PengingatTickService
 
                 if ($hasil['keputusan'] === 'terlewat') {
                     PengingatKejadianRepository::tandaiTerlewat($k);
+
                     continue;
                 }
                 if ($hasil['keputusan'] === 'skip' || $hasil['aksi'] === []) {

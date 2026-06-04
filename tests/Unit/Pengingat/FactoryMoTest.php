@@ -13,7 +13,7 @@ class FactoryMoTest extends TestCase
     public function test_factory_jadwal_mo_membuat_rantai_lengkap(): void
     {
         $jadwal = JadwalMinumObat::factory()->create([
-            'jam_mulai'          => '08:00:00',
+            'jam_mulai' => '08:00:00',
             'frekuensi_per_hari' => 2,
         ]);
 

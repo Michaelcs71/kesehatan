@@ -16,11 +16,11 @@ class PushSubscriptionTest extends TestCase
         $user = User::factory()->create();
 
         $sub = PushSubscription::create([
-            'user_id'     => $user->id,
-            'endpoint'    => 'https://push.example/abc',
-            'public_key'  => 'p256dh-key',
-            'auth_token'  => 'auth-key',
-            'user_agent'  => 'Chrome',
+            'user_id' => $user->id,
+            'endpoint' => 'https://push.example/abc',
+            'public_key' => 'p256dh-key',
+            'auth_token' => 'auth-key',
+            'user_agent' => 'Chrome',
         ]);
 
         $this->assertDatabaseHas('push_subscriptions', ['endpoint' => 'https://push.example/abc']);

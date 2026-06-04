@@ -18,9 +18,9 @@ class KonfirmasiPengingatController extends Controller
 
         return view('pengingat.konfirmasi', [
             'kejadian' => $kejadian,
-            'jadwal'   => $jadwal,
+            'jadwal' => $jadwal,
             'namaObat' => $jadwal->obat?->nama ?? 'Obat',
-            'jamSlot'  => $kejadian->waktu_jadwal->format('H:i'),
+            'jamSlot' => $kejadian->waktu_jadwal->format('H:i'),
         ]);
     }
 
@@ -38,24 +38,24 @@ class KonfirmasiPengingatController extends Controller
         }
 
         $jadwal = JadwalMinumObat::with('obat')->findOrFail($kejadian->jadwal_id);
-        $now    = now();
+        $now = now();
         $jamSlot = $kejadian->waktu_jadwal->format('H:i');
         $jamKini = $now->format('H:i');
 
         $path = $request->file('foto_obat')->store('pengingat-mo', 'public');
 
         $log = PengingatMoLog::create([
-            'id_jo'           => $jadwal->id,
-            'id_user'         => $kejadian->user_pasien_id,
-            'nama_pasien'     => $jadwal->nama_pasien,
-            'nama_obat'       => $jadwal->obat?->nama,
-            'tgl_minum_obat'  => $now->toDateString(),
-            'jam_minum_obat'  => $now->format('H:i:s'),
+            'id_jo' => $jadwal->id,
+            'id_user' => $kejadian->user_pasien_id,
+            'nama_pasien' => $jadwal->nama_pasien,
+            'nama_obat' => $jadwal->obat?->nama,
+            'tgl_minum_obat' => $now->toDateString(),
+            'jam_minum_obat' => $now->format('H:i:s'),
             'jam_slot_target' => $kejadian->waktu_jadwal->format('H:i:s'),
-            'patuh_menit'     => PengingatMoLog::calculatePatuhMenit($jamSlot, $jamKini),
-            'foto_obat'       => $path,
-            'status'          => 'aktif',
-            'created_by'      => Auth::id(),
+            'patuh_menit' => PengingatMoLog::calculatePatuhMenit($jamSlot, $jamKini),
+            'foto_obat' => $path,
+            'status' => 'aktif',
+            'created_by' => Auth::id(),
         ]);
 
         PengingatKejadianRepository::tandaiDikonfirmasi($kejadian, $log->id, $now);

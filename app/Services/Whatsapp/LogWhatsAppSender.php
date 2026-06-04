@@ -9,9 +9,9 @@ class LogWhatsAppSender implements WhatsAppSender
     public function kirimTemplate(string $noHp, string $template, array $params): bool
     {
         Log::info('[WA:log] kirim template', [
-            'no'       => $noHp,
+            'no' => $noHp,
             'template' => $template,
-            'params'   => $params,
+            'params' => $params,
         ]);
 
         return true;

@@ -14,10 +14,10 @@ class PengingatKirimLogTest extends TestCase
     {
         $log = PengingatKirimLog::create([
             'kejadian_id' => 'a-uuid',
-            'kanal'       => 'whatsapp',
-            'target'      => 'pasien',
-            'status'      => 'terkirim',
-            'error'       => null,
+            'kanal' => 'whatsapp',
+            'target' => 'pasien',
+            'status' => 'terkirim',
+            'error' => null,
         ]);
 
         $this->assertDatabaseHas('pengingat_kirim_log', [

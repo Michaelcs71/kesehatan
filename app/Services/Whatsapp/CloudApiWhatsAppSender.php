@@ -18,11 +18,11 @@ class CloudApiWhatsAppSender implements WhatsAppSender
 
         $payload = [
             'messaging_product' => 'whatsapp',
-            'to'                => $noHp,
-            'type'              => 'template',
-            'template'          => [
-                'name'       => $template,
-                'language'   => ['code' => $cfg['lang'] ?? 'id'],
+            'to' => $noHp,
+            'type' => 'template',
+            'template' => [
+                'name' => $template,
+                'language' => ['code' => $cfg['lang'] ?? 'id'],
                 'components' => [
                     ['type' => 'body', 'parameters' => $parameters],
                 ],
@@ -31,10 +31,11 @@ class CloudApiWhatsAppSender implements WhatsAppSender
 
         $resp = Http::withToken($cfg['token'])
             ->acceptJson()
-            ->post(rtrim($cfg['base_url'], '/') . '/' . $cfg['phone_id'] . '/messages', $payload);
+            ->post(rtrim($cfg['base_url'], '/').'/'.$cfg['phone_id'].'/messages', $payload);
 
         if (! $resp->successful()) {
             Log::warning('[WA:cloud_api] gagal', ['status' => $resp->status(), 'body' => $resp->body()]);
+
             return false;
         }
 

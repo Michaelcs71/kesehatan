@@ -49,7 +49,7 @@ class PengingatKejadianRepository
     public static function tandaiDikonfirmasi(PengingatKejadian $k, string $logId, Carbon $waktu): void
     {
         $k->forceFill([
-            'status'            => PengingatKejadian::STATUS_DIKONFIRMASI,
+            'status' => PengingatKejadian::STATUS_DIKONFIRMASI,
             'konfirmasi_log_id' => $logId,
             'dikonfirmasi_pada' => $waktu,
         ])->save();

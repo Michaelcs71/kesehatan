@@ -14,14 +14,14 @@ class JadwalMinumObatFactory extends Factory
     public function definition(): array
     {
         return [
-            'id_pasien_pmo'      => PasienPmo::factory(),
-            'obat_id'            => MasterObat::factory(),
-            'nama_pasien'        => $this->faker->name(),
-            'nama_pmo'           => $this->faker->name(),
-            'tgl_mulai'          => now()->subDay()->toDateString(),
-            'jam_mulai'          => '08:00:00',
+            'id_pasien_pmo' => PasienPmo::factory(),
+            'obat_id' => MasterObat::factory(),
+            'nama_pasien' => $this->faker->name(),
+            'nama_pmo' => $this->faker->name(),
+            'tgl_mulai' => now()->subDay()->toDateString(),
+            'jam_mulai' => '08:00:00',
             'frekuensi_per_hari' => 1,
-            'status'             => 'aktif',
+            'status' => 'aktif',
         ];
     }
 }

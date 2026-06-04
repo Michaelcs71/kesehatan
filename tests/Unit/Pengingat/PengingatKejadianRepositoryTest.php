@@ -16,6 +16,7 @@ class PengingatKejadianRepositoryTest extends TestCase
     private function buatKejadian(): PengingatKejadian
     {
         $u = User::factory()->create();
+
         return PengingatKejadian::create([
             'jenis' => 'mo', 'jadwal_id' => $u->id, 'user_pasien_id' => $u->id,
             'waktu_jadwal' => Carbon::parse('2026-06-03 08:00:00'),

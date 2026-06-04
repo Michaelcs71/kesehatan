@@ -13,8 +13,8 @@ class MasterObatFactory extends Factory
     public function definition(): array
     {
         return [
-            'nama'       => 'Metformin ' . $this->faker->numberBetween(1, 9999),
-            'status'     => 'approved',
+            'nama' => 'Metformin '.$this->faker->numberBetween(1, 9999),
+            'status' => 'approved',
             'created_by' => User::factory(),
         ];
     }

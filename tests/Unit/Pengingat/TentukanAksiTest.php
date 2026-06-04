@@ -37,7 +37,7 @@ class TentukanAksiTest extends TestCase
 
     private function beriPush(string $userId): void
     {
-        PushSubscription::create(['user_id' => $userId, 'endpoint' => 'https://e/' . $userId, 'public_key' => 'p', 'auth_token' => 'a']);
+        PushSubscription::create(['user_id' => $userId, 'endpoint' => 'https://e/'.$userId, 'public_key' => 'p', 'auth_token' => 'a']);
     }
 
     public function test_punya_push_menit_0_kirim_push_pasien(): void

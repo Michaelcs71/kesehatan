@@ -17,12 +17,12 @@ class PengingatKejadianModelTest extends TestCase
         $pasien = User::factory()->create();
 
         $k = PengingatKejadian::create([
-            'jenis'          => 'mo',
-            'jadwal_id'      => $pasien->id, // sembarang uuid untuk uji model
-            'id_pasien_pmo'  => $pasien->id,
+            'jenis' => 'mo',
+            'jadwal_id' => $pasien->id, // sembarang uuid untuk uji model
+            'id_pasien_pmo' => $pasien->id,
             'user_pasien_id' => $pasien->id,
-            'waktu_jadwal'   => Carbon::parse('2026-06-03 08:00:00'),
-            'status'         => PengingatKejadian::STATUS_MENUNGGU,
+            'waktu_jadwal' => Carbon::parse('2026-06-03 08:00:00'),
+            'status' => PengingatKejadian::STATUS_MENUNGGU,
         ]);
 
         $this->assertSame('menunggu', $k->status);

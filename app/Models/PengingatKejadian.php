@@ -11,9 +11,11 @@ class PengingatKejadian extends Model
 {
     use HasUuids;
 
-    public const STATUS_MENUNGGU     = 'menunggu';
+    public const STATUS_MENUNGGU = 'menunggu';
+
     public const STATUS_DIKONFIRMASI = 'dikonfirmasi';
-    public const STATUS_TERLEWAT     = 'terlewat';
+
+    public const STATUS_TERLEWAT = 'terlewat';
 
     protected $table = 'pengingat_kejadian';
 
@@ -37,13 +39,13 @@ class PengingatKejadian extends Model
     protected function casts(): array
     {
         return [
-            'waktu_jadwal'          => 'datetime',
-            'dikonfirmasi_pada'     => 'datetime',
+            'waktu_jadwal' => 'datetime',
+            'dikonfirmasi_pada' => 'datetime',
             'terakhir_dikirim_pada' => 'datetime',
-            'eskalasi_pmo'          => 'boolean',
-            'jumlah_push'           => 'integer',
-            'jumlah_wa_pasien'      => 'integer',
-            'jumlah_wa_pmo'         => 'integer',
+            'eskalasi_pmo' => 'boolean',
+            'jumlah_push' => 'integer',
+            'jumlah_wa_pasien' => 'integer',
+            'jumlah_wa_pmo' => 'integer',
         ];
     }
 

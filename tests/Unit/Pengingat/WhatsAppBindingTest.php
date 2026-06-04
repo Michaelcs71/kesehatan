@@ -25,7 +25,7 @@ class WhatsAppBindingTest extends TestCase
     public function test_log_sender_menulis_log_dan_return_true(): void
     {
         Log::shouldReceive('info')->once();
-        $ok = (new LogWhatsAppSender())->kirimTemplate('628123', 'pengingat_obat', ['a', 'b']);
+        $ok = (new LogWhatsAppSender)->kirimTemplate('628123', 'pengingat_obat', ['a', 'b']);
         $this->assertTrue($ok);
     }
 }

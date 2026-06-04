@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Pengingat;
 
+use App\Models\PushSubscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -16,7 +17,7 @@ class PushSubscriptionEndpointTest extends TestCase
 
         $resp = $this->actingAs($user)->postJson('/push/subscribe', [
             'endpoint' => 'https://push.example/xyz',
-            'keys'     => ['p256dh' => 'kunci-publik', 'auth' => 'kunci-auth'],
+            'keys' => ['p256dh' => 'kunci-publik', 'auth' => 'kunci-auth'],
         ]);
 
         $resp->assertOk();
@@ -33,7 +34,7 @@ class PushSubscriptionEndpointTest extends TestCase
         $this->actingAs($user)->postJson('/push/subscribe', $payload)->assertOk();
         $this->actingAs($user)->postJson('/push/subscribe', $payload)->assertOk();
 
-        $this->assertSame(1, \App\Models\PushSubscription::where('endpoint', 'https://push.example/xyz')->count());
+        $this->assertSame(1, PushSubscription::where('endpoint', 'https://push.example/xyz')->count());
     }
 
     public function test_bisa_unsubscribe(): void

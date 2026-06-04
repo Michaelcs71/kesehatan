@@ -22,7 +22,7 @@ class PengingatTickCommandTest extends TestCase
     public function test_command_materialisasi_dan_dispatch(): void
     {
         Queue::fake();
-        Carbon::setTestNow(Carbon::parse(now()->toDateString() . ' 08:01:00'));
+        Carbon::setTestNow(Carbon::parse(now()->toDateString().' 08:01:00'));
         JadwalMinumObat::factory()->create(['jam_mulai' => '08:00:00', 'frekuensi_per_hari' => 1, 'tgl_mulai' => now()->subDay()->toDateString()]);
 
         $this->artisan('pengingat:tick')->assertExitCode(0);

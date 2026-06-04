@@ -13,15 +13,15 @@ class PasienPmoFactory extends Factory
     public function definition(): array
     {
         return [
-            'id_user'         => User::factory(),
-            'pmo_user_id'     => User::factory(),
-            'nama_pasien'     => $this->faker->name(),
-            'nik'             => (string) $this->faker->numerify('################'),
-            'nama_pmo'        => $this->faker->name(),
-            'jenis_pmo'       => 'Keluarga',
-            'tanggal_regis'   => now()->toDateString(),
+            'id_user' => User::factory(),
+            'pmo_user_id' => User::factory(),
+            'nama_pasien' => $this->faker->name(),
+            'nik' => (string) $this->faker->numerify('################'),
+            'nama_pmo' => $this->faker->name(),
+            'jenis_pmo' => 'Keluarga',
+            'tanggal_regis' => now()->toDateString(),
             'status_diabetes' => 'Sedang',
-            'is_active'       => true,
+            'is_active' => true,
         ];
     }
 }

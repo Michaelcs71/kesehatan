@@ -18,7 +18,7 @@ class WebPushSenderTest extends TestCase
         PushSubscription::create(['user_id' => $u->id, 'endpoint' => 'https://a', 'public_key' => 'p', 'auth_token' => 'a']);
         PushSubscription::create(['user_id' => $u->id, 'endpoint' => 'https://b', 'public_key' => 'p', 'auth_token' => 'a']);
 
-        (new WebPushSender())->hapusSubscriptionKedaluwarsa(['https://a']);
+        (new WebPushSender)->hapusSubscriptionKedaluwarsa(['https://a']);
 
         $this->assertDatabaseMissing('push_subscriptions', ['endpoint' => 'https://a']);
         $this->assertDatabaseHas('push_subscriptions', ['endpoint' => 'https://b']);
@@ -27,7 +27,7 @@ class WebPushSenderTest extends TestCase
     public function test_kirim_ke_user_tanpa_subscription_tidak_error_return_nol(): void
     {
         $u = User::factory()->create();
-        $terkirim = (new WebPushSender())->kirimKeUser($u->id, ['judul' => 'Hai', 'isi' => 'tes', 'url' => '/']);
+        $terkirim = (new WebPushSender)->kirimKeUser($u->id, ['judul' => 'Hai', 'isi' => 'tes', 'url' => '/']);
         $this->assertSame(0, $terkirim);
     }
 }

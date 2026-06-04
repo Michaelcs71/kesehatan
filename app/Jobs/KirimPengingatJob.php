@@ -20,6 +20,7 @@ class KirimPengingatJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public array $backoff = [30, 120];
 
     public function __construct(
@@ -47,18 +48,19 @@ class KirimPengingatJob implements ShouldQueue
         }
 
         $namaObat = $jadwal->obat?->nama ?? 'obat';
-        $jamSlot  = $kejadian->waktu_jadwal->format('H:i');
-        $url      = url("/pengingat/{$kejadian->id}/konfirmasi"); // route dibuat penuh di task berikutnya
+        $jamSlot = $kejadian->waktu_jadwal->format('H:i');
+        $url = url("/pengingat/{$kejadian->id}/konfirmasi"); // route dibuat penuh di task berikutnya
 
         try {
             if ($this->kanal === 'push') {
                 $judul = $this->target === 'pmo' ? 'Pasien Anda belum minum obat' : 'Waktunya minum obat';
-                $isi   = "Obat {$namaObat} jadwal jam {$jamSlot}.";
+                $isi = "Obat {$namaObat} jadwal jam {$jamSlot}.";
                 $push->kirimKeUser($user->id, ['judul' => $judul, 'isi' => $isi, 'url' => $url]);
             } else {
                 $no = $this->normalkanNomor($user->whatsapp_number);
                 if (! $no) {
                     $this->catat($kejadian->id, 'gagal', 'nomor WA kosong');
+
                     return;
                 }
                 $template = config('pengingat.whatsapp.cloud_api.template_mo', 'pengingat_obat');
@@ -85,10 +87,10 @@ class KirimPengingatJob implements ShouldQueue
     {
         PengingatKirimLog::create([
             'kejadian_id' => $kejadianId,
-            'kanal'       => $this->kanal,
-            'target'      => $this->target,
-            'status'      => $status,
-            'error'       => $error,
+            'kanal' => $this->kanal,
+            'target' => $this->target,
+            'status' => $status,
+            'error' => $error,
         ]);
     }
 
@@ -99,10 +101,11 @@ class KirimPengingatJob implements ShouldQueue
         }
         $no = preg_replace('/\D+/', '', $no);
         if (str_starts_with($no, '0')) {
-            $no = '62' . substr($no, 1);
+            $no = '62'.substr($no, 1);
         } elseif (! str_starts_with($no, '62')) {
-            $no = '62' . $no;
+            $no = '62'.$no;
         }
+
         return $no;
     }
 }

@@ -23,7 +23,7 @@ class KirimPengingatJobTest extends TestCase
         return PengingatKejadian::create([
             'jenis' => 'mo', 'jadwal_id' => $jadwal->id, 'id_pasien_pmo' => $pp->id,
             'user_pasien_id' => $pp->id_user, 'user_pmo_id' => $pp->pmo_user_id,
-            'waktu_jadwal' => Carbon::parse(now()->toDateString() . ' 08:00:00'),
+            'waktu_jadwal' => Carbon::parse(now()->toDateString().' 08:00:00'),
             'status' => PengingatKejadian::STATUS_MENUNGGU,
         ]);
     }
@@ -33,11 +33,14 @@ class KirimPengingatJobTest extends TestCase
         $k = $this->buatKejadian();
         $k->pasien->update(['whatsapp_number' => '08123456789']);
 
-        $fake = new class implements WhatsAppSender {
+        $fake = new class implements WhatsAppSender
+        {
             public array $dipanggil = [];
+
             public function kirimTemplate(string $noHp, string $template, array $params): bool
             {
                 $this->dipanggil[] = compact('noHp', 'template', 'params');
+
                 return true;
             }
         };
