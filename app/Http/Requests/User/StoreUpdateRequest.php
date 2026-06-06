@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\User;
 
+use App\Models\UserBiodata;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,13 +11,14 @@ class StoreUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
-        return $this->user()->can('master-user.' . ($isUpdate ? 'edit' : 'create'));
+
+        return $this->user()->can('master-user.'.($isUpdate ? 'edit' : 'create'));
     }
 
     public function rules(): array
     {
         $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
-        $userId   = $this->route('id');
+        $userId = $this->route('id');
 
         // Tentukan apakah field biodata wajib: hanya kalau role = pasien/pmo
         $role = $this->input('role');
@@ -25,11 +27,11 @@ class StoreUpdateRequest extends FormRequest
         // Biodata id untuk ignore unique pada update
         $biodataId = null;
         if ($isUpdate && $userId) {
-            $biodataId = \App\Models\UserBiodata::where('user_id', $userId)->value('id');
+            $biodataId = UserBiodata::where('user_id', $userId)->value('id');
         }
 
         return [
-            'name'            => [
+            'name' => [
                 'required',
                 'string',
                 'max:200',
@@ -41,11 +43,11 @@ class StoreUpdateRequest extends FormRequest
                 'max:20',
                 Rule::unique('users', 'whatsapp_number')->ignore($userId),
             ],
-            'role'            => 'required|string|in:pengunjung,pasien,pmo,admin,superadmin',
-            'password'        => $isUpdate
+            'role' => 'required|string|in:pengunjung,pasien,pmo,admin,superadmin',
+            'password' => $isUpdate
                 ? ['nullable', 'string', 'min:8', 'confirmed']
                 : ['required', 'string', 'min:8', 'confirmed'],
-            'is_active'       => 'nullable|boolean',
+            'is_active' => 'nullable|boolean',
 
             // Biodata - wajib hanya kalau role pasien/pmo
             'nik' => [
@@ -54,44 +56,44 @@ class StoreUpdateRequest extends FormRequest
                 'size:16',
                 Rule::unique('user_biodatas', 'nik')->ignore($biodataId)->whereNull('deleted_at'),
             ],
-            'jenis_kelamin'   => [$requiresBiodata ? 'required' : 'nullable', 'string', 'in:L,P'],
-            'tempat_lahir'    => [$requiresBiodata ? 'required' : 'nullable', 'string', 'max:50'],
-            'tanggal_lahir'   => [$requiresBiodata ? 'required' : 'nullable', 'date', 'before_or_equal:today'],
+            'jenis_kelamin' => [$requiresBiodata ? 'required' : 'nullable', 'string', 'in:L,P'],
+            'tempat_lahir' => [$requiresBiodata ? 'required' : 'nullable', 'string', 'max:50'],
+            'tanggal_lahir' => [$requiresBiodata ? 'required' : 'nullable', 'date', 'before_or_equal:today'],
 
             // Biodata opsional
-            'no_kk'             => ['nullable', 'string', 'size:16'],
-            'alamat_jalan'      => ['nullable', 'string', 'max:255'],
-            'alamat_rt'         => ['nullable', 'string', 'max:5'],
-            'alamat_rw'         => ['nullable', 'string', 'max:5'],
-            'alamat_dusun'      => ['nullable', 'string', 'max:100'],
-            'alamat_desa'       => ['nullable', 'string', 'max:100'],
-            'alamat_kecamatan'  => ['nullable', 'string', 'max:100'],
-            'alamat_kabupaten'  => ['nullable', 'string', 'max:100'],
-            'alamat_provinsi'   => ['nullable', 'string', 'max:100'],
-            'alamat_kodepos'    => ['nullable', 'string', 'max:10'],
+            'no_kk' => ['nullable', 'string', 'size:16'],
+            'alamat_jalan' => ['nullable', 'string', 'max:255'],
+            'alamat_rt' => ['nullable', 'string', 'max:5'],
+            'alamat_rw' => ['nullable', 'string', 'max:5'],
+            'alamat_dusun' => ['nullable', 'string', 'max:100'],
+            'alamat_desa' => ['nullable', 'string', 'max:100'],
+            'alamat_kecamatan' => ['nullable', 'string', 'max:100'],
+            'alamat_kabupaten' => ['nullable', 'string', 'max:100'],
+            'alamat_provinsi' => ['nullable', 'string', 'max:100'],
+            'alamat_kodepos' => ['nullable', 'string', 'max:10'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required'            => 'Nama wajib diisi.',
-            'name.unique'              => 'Nama ini sudah digunakan oleh user lain.',
+            'name.required' => 'Nama wajib diisi.',
+            'name.unique' => 'Nama ini sudah digunakan oleh user lain.',
             'whatsapp_number.required' => 'No. WhatsApp wajib diisi.',
-            'whatsapp_number.unique'   => 'No. WhatsApp ini sudah digunakan oleh user lain.',
-            'role.required'            => 'Role wajib dipilih.',
-            'password.required'        => 'Password wajib diisi.',
-            'password.min'             => 'Password minimal 8 karakter.',
-            'password.confirmed'       => 'Konfirmasi password tidak cocok.',
-            'nik.required'             => 'NIK wajib diisi untuk pasien/PMO.',
-            'nik.size'                 => 'NIK harus 16 digit.',
-            'nik.unique'               => 'NIK ini sudah terdaftar.',
-            'jenis_kelamin.required'   => 'Jenis kelamin wajib dipilih.',
-            'jenis_kelamin.in'         => 'Jenis kelamin tidak valid.',
-            'tempat_lahir.required'    => 'Tempat lahir wajib diisi.',
-            'tanggal_lahir.required'   => 'Tanggal lahir wajib diisi.',
+            'whatsapp_number.unique' => 'No. WhatsApp ini sudah digunakan oleh user lain.',
+            'role.required' => 'Role wajib dipilih.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'nik.required' => 'NIK wajib diisi untuk pasien/PMO.',
+            'nik.size' => 'NIK harus 16 digit.',
+            'nik.unique' => 'NIK ini sudah terdaftar.',
+            'jenis_kelamin.required' => 'Jenis kelamin wajib dipilih.',
+            'jenis_kelamin.in' => 'Jenis kelamin tidak valid.',
+            'tempat_lahir.required' => 'Tempat lahir wajib diisi.',
+            'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir.before_or_equal' => 'Tanggal lahir tidak boleh di masa depan.',
-            'no_kk.size'               => 'No KK harus 16 digit.',
+            'no_kk.size' => 'No KK harus 16 digit.',
         ];
     }
 
@@ -100,14 +102,14 @@ class StoreUpdateRequest extends FormRequest
      */
     public function prepareForValidation(): void
     {
-        if (!$this->has('is_active')) {
+        if (! $this->has('is_active')) {
             $this->merge(['is_active' => true]);
         }
 
         if ($this->has('whatsapp_number')) {
             $wa = preg_replace('/[\s\+\-\(\)]/', '', $this->whatsapp_number);
             if (str_starts_with($wa, '62')) {
-                $wa = '0' . substr($wa, 2);
+                $wa = '0'.substr($wa, 2);
             }
             $this->merge(['whatsapp_number' => $wa]);
         }

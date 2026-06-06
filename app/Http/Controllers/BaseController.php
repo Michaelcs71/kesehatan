@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +16,7 @@ abstract class BaseController extends Controller
     {
         $response = [
             'success' => true,
-            'message' => $message
+            'message' => $message,
         ];
 
         if ($data !== null) {
@@ -32,7 +33,7 @@ abstract class BaseController extends Controller
     {
         $response = [
             'success' => false,
-            'message' => $message
+            'message' => $message,
         ];
 
         if ($errors !== null) {
@@ -64,15 +65,15 @@ abstract class BaseController extends Controller
      */
     protected function handleException(\Exception $e, string $defaultMessage = 'Terjadi kesalahan'): JsonResponse
     {
-        $message = $e instanceof \Illuminate\Database\QueryException
-            ? 'Database error: ' . $e->getMessage()
+        $message = $e instanceof QueryException
+            ? 'Database error: '.$e->getMessage()
             : $e->getMessage();
 
         Log::error($message, [
             'exception' => get_class($e),
-            'file'      => $e->getFile(),
-            'line'      => $e->getLine(),
-            'trace'     => $e->getTraceAsString(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString(),
         ]);
 
         return $this->errorResponse($message ?: $defaultMessage);

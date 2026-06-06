@@ -12,15 +12,15 @@ return new class extends Migration
         // 1. Tambah column kategori_id (nullable dulu biar bisa migrasi data)
         Schema::table('master_obats', function (Blueprint $table) {
             $table->foreignUuid('kategori_id')->nullable()->after('nama')
-                  ->constrained('master_kategori_obats')
-                  ->nullOnDelete();
+                ->constrained('master_kategori_obats')
+                ->nullOnDelete();
         });
 
         // 2. Migrasi data: map kategori string lama ke kategori_id baru
         $kategoriMap = DB::table('master_kategori_obats')
             ->whereNull('deleted_at')
             ->get()
-            ->mapWithKeys(fn($k) => [strtolower($k->nama) => $k->id])
+            ->mapWithKeys(fn ($k) => [strtolower($k->nama) => $k->id])
             ->toArray();
 
         // Update tiap row master_obats
@@ -56,7 +56,7 @@ return new class extends Migration
         $kategoriMap = DB::table('master_kategori_obats')
             ->whereNull('deleted_at')
             ->get()
-            ->mapWithKeys(fn($k) => [$k->id => strtolower($k->nama)])
+            ->mapWithKeys(fn ($k) => [$k->id => strtolower($k->nama)])
             ->toArray();
 
         $obats = DB::table('master_obats')->whereNull('deleted_at')->whereNotNull('kategori_id')->get();

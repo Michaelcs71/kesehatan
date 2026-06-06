@@ -25,11 +25,11 @@ class UpdateRequest extends FormRequest
                 'uuid',
                 Rule::exists('master_obats', 'id')->whereNull('deleted_at'),
             ],
-            'tgl_mulai'          => 'required|date',
-            'jam_mulai'          => 'required|date_format:H:i',
+            'tgl_mulai' => 'required|date',
+            'jam_mulai' => 'required|date_format:H:i',
             'frekuensi_per_hari' => 'required|integer|min:1|max:12',
-            'catatan_dosis'      => 'nullable|string|max:500',
-            'status'             => 'required|string|in:aktif,nonaktif,selesai',
+            'catatan_dosis' => 'nullable|string|max:500',
+            'status' => 'required|string|in:aktif,nonaktif,selesai',
         ];
     }
 }

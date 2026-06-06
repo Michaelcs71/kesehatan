@@ -21,8 +21,8 @@ class QuickCreateObatRequest extends FormRequest
                 'max:100',
                 Rule::unique('master_obats', 'nama')->whereNull('deleted_at'),
             ],
-            'satuan_id'     => 'required|uuid|exists:master_satuan_obats,id',
-            'kategori_id'   => 'nullable|uuid|exists:master_kategori_obats,id',
+            'satuan_id' => 'required|uuid|exists:master_satuan_obats,id',
+            'kategori_id' => 'nullable|uuid|exists:master_kategori_obats,id',
             'dosis_default' => 'nullable|string|max:50',
         ];
     }
@@ -30,10 +30,10 @@ class QuickCreateObatRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nama.required'  => 'Nama obat wajib diisi.',
-            'nama.unique'    => 'Obat dengan nama ini sudah ada di master.',
+            'nama.required' => 'Nama obat wajib diisi.',
+            'nama.unique' => 'Obat dengan nama ini sudah ada di master.',
             'satuan_id.required' => 'Satuan obat wajib dipilih.',
-            'satuan_id.exists'   => 'Satuan obat tidak valid.',
+            'satuan_id.exists' => 'Satuan obat tidak valid.',
         ];
     }
 }

@@ -16,15 +16,17 @@ use Intervention\Image\ImageManager;
 class PengingatCgdLogService
 {
     const FOTO_PATH = 'pengingat-cgd';
+
     const MAX_WIDTH = 1280;
+
     const QUALITY = 75;
 
     public static function getAllLogs(array $params): array
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
-        $forUserId    = null;
+        $forUserId = null;
         $forPmoUserId = null;
 
         if ($user->isPasien()) {
@@ -49,13 +51,16 @@ class PengingatCgdLogService
 
         return [
             'TotalRows' => $data->total(),
-            'Rows'      => $data->items(),
+            'Rows' => $data->items(),
         ];
     }
 
     public static function findLogById(string $id): ?PengingatCgdLog
     {
-        if (empty($id) || in_array($id, ['create', 'edit'])) return null;
+        if (empty($id) || in_array($id, ['create', 'edit'])) {
+            return null;
+        }
+
         return PengingatCgdLogRepository::findLogById($id);
     }
 
@@ -69,12 +74,12 @@ class PengingatCgdLogService
      */
     public static function createLog(array $data, UploadedFile $foto): PengingatCgdLog
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         // Load jadwal CGD untuk snapshot
         $cgd = JadwalCgd::where('status', 'aktif')->find($data['id_cgd']);
-        if (!$cgd) {
+        if (! $cgd) {
             throw new \Exception('Jadwal CGD tidak ditemukan atau sudah nonaktif.');
         }
 
@@ -84,7 +89,7 @@ class PengingatCgdLogService
         $pasien = $user;
         if (isset($data['id_pasien']) && $data['id_pasien']) {
             $pasien = User::find($data['id_pasien']);
-            if (!$pasien) {
+            if (! $pasien) {
                 throw new \Exception('Pasien tidak ditemukan.');
             }
         }
@@ -102,19 +107,19 @@ class PengingatCgdLogService
         $fotoPath = self::uploadFoto($foto);
 
         return PengingatCgdLogRepository::createLog([
-            'id_cgd'         => $cgd->id,
-            'id_user'        => $pasien->id,
-            'nama_pasien'    => $pasien->name,
-            'jenis_kelamin'  => $jenisKelamin,
-            'tempat_cgd'     => $cgd->tempat,
-            'tgl_cgd'        => $data['tgl_cgd'],
-            'jam_cgd'        => $data['jam_cgd'],
-            'hasil_mgdl'     => $hasil,
+            'id_cgd' => $cgd->id,
+            'id_user' => $pasien->id,
+            'nama_pasien' => $pasien->name,
+            'jenis_kelamin' => $jenisKelamin,
+            'tempat_cgd' => $cgd->tempat,
+            'tgl_cgd' => $data['tgl_cgd'],
+            'jam_cgd' => $data['jam_cgd'],
+            'hasil_mgdl' => $hasil,
             'kategori_hasil' => $kategori,
-            'patuh_selisih'  => $patuhSelisih,
-            'foto_layar'     => $fotoPath,
-            'status'         => 'aktif',
-            'created_by'     => $user->id,
+            'patuh_selisih' => $patuhSelisih,
+            'foto_layar' => $fotoPath,
+            'status' => 'aktif',
+            'created_by' => $user->id,
         ]);
     }
 
@@ -123,26 +128,28 @@ class PengingatCgdLogService
      */
     public static function updateLog(string $id, array $data, ?UploadedFile $foto = null): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $log = PengingatCgdLogRepository::findLogById($id);
-        if (!$log) throw new \Exception('Log tidak ditemukan.');
+        if (! $log) {
+            throw new \Exception('Log tidak ditemukan.');
+        }
 
         self::authorizeLogAccess($log, $user);
 
         $updateData = [
-            'tgl_cgd'    => $data['tgl_cgd'],
-            'jam_cgd'    => $data['jam_cgd'],
+            'tgl_cgd' => $data['tgl_cgd'],
+            'jam_cgd' => $data['jam_cgd'],
             'hasil_mgdl' => (int) $data['hasil_mgdl'],
-            'status'     => $data['status'] ?? $log->status,
+            'status' => $data['status'] ?? $log->status,
             'updated_by' => $user->id,
         ];
 
         // Re-calc kategori & patuh kalau hasil berubah
         if ((int) $data['hasil_mgdl'] !== $log->hasil_mgdl) {
             $updateData['kategori_hasil'] = PengingatCgdLog::determineKategori((int) $data['hasil_mgdl']);
-            $updateData['patuh_selisih']  = PengingatCgdLog::calculatePatuhSelisih(
+            $updateData['patuh_selisih'] = PengingatCgdLog::calculatePatuhSelisih(
                 (int) $data['hasil_mgdl'],
                 $log->jenis_kelamin
             );
@@ -163,31 +170,40 @@ class PengingatCgdLogService
 
     public static function deactivate(string $id): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $log = PengingatCgdLogRepository::findLogById($id);
-        if (!$log) throw new \Exception('Log tidak ditemukan.');
+        if (! $log) {
+            throw new \Exception('Log tidak ditemukan.');
+        }
         self::authorizeLogAccess($log, $user);
+
         return PengingatCgdLogRepository::deactivate($id, $user->id);
     }
 
     public static function activate(string $id): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $log = PengingatCgdLogRepository::findLogById($id);
-        if (!$log) throw new \Exception('Log tidak ditemukan.');
+        if (! $log) {
+            throw new \Exception('Log tidak ditemukan.');
+        }
         self::authorizeLogAccess($log, $user);
+
         return PengingatCgdLogRepository::activate($id, $user->id);
     }
 
     public static function deleteLog(string $id): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $log = PengingatCgdLogRepository::findLogById($id);
-        if (!$log) throw new \Exception('Log tidak ditemukan.');
+        if (! $log) {
+            throw new \Exception('Log tidak ditemukan.');
+        }
         self::authorizeLogAccess($log, $user);
+
         return PengingatCgdLogRepository::deleteLog($id, $user->id);
     }
 
@@ -196,7 +212,7 @@ class PengingatCgdLogService
      */
     protected static function uploadFoto(UploadedFile $file): string
     {
-        $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver);
         $image = $manager->decode($file->getRealPath());
 
         if ($image->width() > self::MAX_WIDTH) {
@@ -221,7 +237,7 @@ class PengingatCgdLogService
      */
     public static function getStats(): array
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $base = PengingatCgdLog::query();
@@ -236,20 +252,22 @@ class PengingatCgdLogService
         }
 
         return [
-            'total'             => (clone $base)->count(),
-            'normal'            => (clone $base)->where('kategori_hasil', 'normal')->count(),
-            'tidak_terkontrol'  => (clone $base)->where('kategori_hasil', 'tidak_terkontrol')->count(),
-            'tinggi'            => (clone $base)->where('kategori_hasil', 'tinggi')->count(),
-            'berbahaya'         => (clone $base)->where('kategori_hasil', 'berbahaya')->count(),
+            'total' => (clone $base)->count(),
+            'normal' => (clone $base)->where('kategori_hasil', 'normal')->count(),
+            'tidak_terkontrol' => (clone $base)->where('kategori_hasil', 'tidak_terkontrol')->count(),
+            'tinggi' => (clone $base)->where('kategori_hasil', 'tinggi')->count(),
+            'berbahaya' => (clone $base)->where('kategori_hasil', 'berbahaya')->count(),
         ];
     }
 
     /**
      * Authorization: user boleh akses log ini?
      */
-    protected static function authorizeLogAccess(PengingatCgdLog $log, \App\Models\User $user): void
+    protected static function authorizeLogAccess(PengingatCgdLog $log, User $user): void
     {
-        if ($user->isSuperadmin() || $user->isAdmin()) return;
+        if ($user->isSuperadmin() || $user->isAdmin()) {
+            return;
+        }
 
         if ($user->isPasien() && $log->id_user !== $user->id) {
             throw new \Exception('Anda tidak punya akses ke log ini.');
@@ -261,7 +279,7 @@ class PengingatCgdLogService
                 ->where('is_active', true)
                 ->where('pmo_user_id', $user->id)
                 ->first();
-            if (!$mapping) {
+            if (! $mapping) {
                 throw new \Exception('Anda tidak punya akses ke log pasien ini.');
             }
         }

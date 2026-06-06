@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MasterKategoriObat extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'nama',
@@ -48,10 +48,13 @@ class MasterKategoriObat extends Model
     // Scopes
     public function scopeSearch(Builder $q, ?string $term): Builder
     {
-        if (blank($term)) return $q;
+        if (blank($term)) {
+            return $q;
+        }
+
         return $q->where(function ($qq) use ($term) {
             $qq->where('nama', 'like', "%{$term}%")
-               ->orWhere('deskripsi', 'like', "%{$term}%");
+                ->orWhere('deskripsi', 'like', "%{$term}%");
         });
     }
 

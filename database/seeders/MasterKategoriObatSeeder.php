@@ -14,19 +14,19 @@ class MasterKategoriObatSeeder extends Seeder
     {
         $defaults = [
             [
-                'nama'      => 'Oral',
+                'nama' => 'Oral',
                 'deskripsi' => 'Obat yang diminum melalui mulut (tablet, kapsul, sirup, dll)',
             ],
             [
-                'nama'      => 'Injeksi',
+                'nama' => 'Injeksi',
                 'deskripsi' => 'Obat yang diberikan melalui suntikan',
             ],
             [
-                'nama'      => 'Insulin',
+                'nama' => 'Insulin',
                 'deskripsi' => 'Hormon insulin untuk pengobatan diabetes',
             ],
             [
-                'nama'      => 'Lainnya',
+                'nama' => 'Lainnya',
                 'deskripsi' => 'Kategori obat lain yang belum terdefinisi',
             ],
         ];
@@ -38,6 +38,6 @@ class MasterKategoriObatSeeder extends Seeder
             );
         }
 
-        $this->command->info('  [OK] ' . count($defaults) . ' default kategori obat seeded');
+        $this->command->info('  [OK] '.count($defaults).' default kategori obat seeded');
     }
 }

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PasienPmo extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'pasien_pmos';
 
@@ -35,7 +35,7 @@ class PasienPmo extends Model
     {
         return [
             'tanggal_regis' => 'date',
-            'is_active'     => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -99,7 +99,10 @@ class PasienPmo extends Model
 
     public function scopeSearch(Builder $q, ?string $term): Builder
     {
-        if (blank($term)) return $q;
+        if (blank($term)) {
+            return $q;
+        }
+
         return $q->where(function ($qq) use ($term) {
             $qq->where('nama_pasien', 'like', "%{$term}%")
                 ->orWhere('nama_pmo', 'like', "%{$term}%")

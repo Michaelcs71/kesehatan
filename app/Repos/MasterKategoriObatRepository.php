@@ -52,13 +52,14 @@ class MasterKategoriObatRepository
 
     public static function createMasterKategoriObat(array $data): MasterKategoriObat
     {
-        return DB::transaction(fn() => MasterKategoriObat::create($data));
+        return DB::transaction(fn () => MasterKategoriObat::create($data));
     }
 
     public static function updateMasterKategoriObat(string $id, array $data): bool
     {
         return DB::transaction(function () use ($id, $data) {
             $item = MasterKategoriObat::find($id);
+
             return $item ? $item->update($data) : false;
         });
     }
@@ -67,6 +68,7 @@ class MasterKategoriObatRepository
     {
         return DB::transaction(function () use ($id) {
             $item = MasterKategoriObat::find($id);
+
             return $item ? (bool) $item->delete() : false;
         });
     }

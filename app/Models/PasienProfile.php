@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PasienProfile extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -32,10 +32,10 @@ class PasienProfile extends Model
     protected function casts(): array
     {
         return [
-            'tanggal_lahir'     => 'date',
+            'tanggal_lahir' => 'date',
             'tanggal_diagnosis' => 'date',
-            'tinggi_badan'      => 'decimal:2',
-            'berat_badan'       => 'decimal:2',
+            'tinggi_badan' => 'decimal:2',
+            'berat_badan' => 'decimal:2',
         ];
     }
 
@@ -56,10 +56,11 @@ class PasienProfile extends Model
 
     public function getBmiAttribute(): ?float
     {
-        if (!$this->tinggi_badan || !$this->berat_badan) {
+        if (! $this->tinggi_badan || ! $this->berat_badan) {
             return null;
         }
         $heightInMeters = $this->tinggi_badan / 100;
+
         return round($this->berat_badan / ($heightInMeters * $heightInMeters), 2);
     }
 }

@@ -17,16 +17,17 @@ class UserRoleAssignmentSeeder extends Seeder
         // Mapping email -> Spatie role
         $assignments = [
             'superadmin@kesehatan.test' => 'superadmin',
-            'admin@kesehatan.test'      => 'admin',
-            'pmo@kesehatan.test'        => 'pmo',
-            'pasien@kesehatan.test'     => 'pasien',
+            'admin@kesehatan.test' => 'admin',
+            'pmo@kesehatan.test' => 'pmo',
+            'pasien@kesehatan.test' => 'pasien',
         ];
 
         foreach ($assignments as $email => $roleName) {
             $user = User::where('email', $email)->first();
 
-            if (!$user) {
+            if (! $user) {
                 $this->command->warn("  - SKIP: user {$email} tidak ditemukan");
+
                 continue;
             }
 

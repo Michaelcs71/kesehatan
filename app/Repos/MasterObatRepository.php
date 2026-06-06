@@ -31,7 +31,7 @@ class MasterObatRepository
         ]);
 
         // Visibility per role
-        if ($user && !$user->isAdmin()) {
+        if ($user && ! $user->isAdmin()) {
             $query->where(function (Builder $q) use ($user) {
                 $q->where('status', StatusObat::APPROVED->value)
                     ->orWhere('created_by', $user->id);
@@ -84,9 +84,10 @@ class MasterObatRepository
     {
         return DB::transaction(function () use ($id, $data) {
             $obat = MasterObat::find($id);
-            if (!$obat) {
+            if (! $obat) {
                 return false;
             }
+
             return $obat->update($data);
         });
     }
@@ -98,9 +99,10 @@ class MasterObatRepository
     {
         return DB::transaction(function () use ($id) {
             $obat = MasterObat::find($id);
-            if (!$obat) {
+            if (! $obat) {
                 return false;
             }
+
             return (bool) $obat->delete();
         });
     }

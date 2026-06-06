@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\JadwalCgd\{IndexRequest, StoreRequest, UpdateRequest};
+use App\Http\Requests\JadwalCgd\IndexRequest;
+use App\Http\Requests\JadwalCgd\StoreRequest;
+use App\Http\Requests\JadwalCgd\UpdateRequest;
 use App\Services\JadwalCgdService;
 use Illuminate\Http\JsonResponse;
 
@@ -15,28 +17,30 @@ class JadwalCgdController extends Controller
 
     public function index()
     {
-        return view($this->getViewPath() . '.index');
+        return view($this->getViewPath().'.index');
     }
 
     public function getData(IndexRequest $request): JsonResponse
     {
         $data = JadwalCgdService::getAllJadwal($request->validated());
+
         return response()->json($data);
     }
 
     public function create()
     {
-        return view($this->getViewPath() . '.form');
+        return view($this->getViewPath().'.form');
     }
 
     public function store(StoreRequest $request): JsonResponse
     {
         try {
             $jadwal = JadwalCgdService::createJadwal($request->validated());
+
             return response()->json([
                 'success' => true,
                 'message' => 'Jadwal CGD berhasil dibuat.',
-                'data'    => $jadwal,
+                'data' => $jadwal,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -50,19 +54,19 @@ class JadwalCgdController extends Controller
     {
         $jadwal = JadwalCgdService::findJadwalById($id);
 
-        if (!$jadwal) {
+        if (! $jadwal) {
             return redirect()->route('jadwal-cgd.index')
                 ->with('error', 'Jadwal CGD tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.show', compact('id'));
+        return view($this->getViewPath().'.show', compact('id'));
     }
 
     public function showData(string $id): JsonResponse
     {
         $jadwal = JadwalCgdService::findJadwalById($id);
 
-        if (!$jadwal) {
+        if (! $jadwal) {
             return response()->json(['message' => 'Data tidak ditemukan'], 404);
         }
 
@@ -73,18 +77,19 @@ class JadwalCgdController extends Controller
     {
         $jadwal = JadwalCgdService::findJadwalById($id);
 
-        if (!$jadwal) {
+        if (! $jadwal) {
             return redirect()->route('jadwal-cgd.index')
                 ->with('error', 'Jadwal CGD tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.form', compact('id'));
+        return view($this->getViewPath().'.form', compact('id'));
     }
 
     public function update(UpdateRequest $request, string $id): JsonResponse
     {
         try {
             JadwalCgdService::updateJadwal($id, $request->validated());
+
             return response()->json([
                 'success' => true,
                 'message' => 'Jadwal CGD berhasil diupdate.',
@@ -101,6 +106,7 @@ class JadwalCgdController extends Controller
     {
         try {
             JadwalCgdService::deleteJadwal($id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Jadwal CGD berhasil dihapus.',
@@ -117,6 +123,7 @@ class JadwalCgdController extends Controller
     {
         try {
             JadwalCgdService::deactivate($id);
+
             return response()->json(['success' => true, 'message' => 'Jadwal dinonaktifkan.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -127,6 +134,7 @@ class JadwalCgdController extends Controller
     {
         try {
             JadwalCgdService::activate($id);
+
             return response()->json(['success' => true, 'message' => 'Jadwal diaktifkan.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -137,6 +145,7 @@ class JadwalCgdController extends Controller
     {
         try {
             JadwalCgdService::markSelesai($id);
+
             return response()->json(['success' => true, 'message' => 'Jadwal ditandai selesai.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);

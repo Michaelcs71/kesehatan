@@ -9,9 +9,8 @@ use App\Repos\UserRepository;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class UserImportService
 {
@@ -22,45 +21,45 @@ class UserImportService
      */
     public static function parsePreview(UploadedFile $file): array
     {
-        $imported = Excel::toArray(new UserImport(), $file);
-        $rawRows  = $imported[0] ?? [];
+        $imported = Excel::toArray(new UserImport, $file);
+        $rawRows = $imported[0] ?? [];
 
         // Filter empty rows
         $rawRows = array_filter($rawRows, function ($row) {
-            return !empty($row['nama']) || !empty($row['nik']);
+            return ! empty($row['nama']) || ! empty($row['nik']);
         });
 
-        $rows    = [];
-        $rowIdx  = 0;
+        $rows = [];
+        $rowIdx = 0;
 
         // Track duplikat di dalam file (cross-row)
         $seenInFile = [
-            'nama'    => [],
+            'nama' => [],
             'whatsapp_number' => [],
-            'nik'     => [],
+            'nik' => [],
         ];
 
         foreach ($rawRows as $row) {
             $rowIdx++;
             $rowData = self::normalizeRowData($row);
-            $errors  = self::validateRow($rowData, $seenInFile);
+            $errors = self::validateRow($rowData, $seenInFile);
 
             $rows[] = [
                 'row_number' => $rowIdx,
-                'data'       => $rowData,
-                'errors'     => $errors,
-                'status'     => empty($errors) ? 'valid' : (self::hasFatalError($errors) ? 'error' : 'conflict'),
-                'skipped'    => false,
+                'data' => $rowData,
+                'errors' => $errors,
+                'status' => empty($errors) ? 'valid' : (self::hasFatalError($errors) ? 'error' : 'conflict'),
+                'skipped' => false,
             ];
 
             // Track yang sudah dilihat (untuk deteksi duplikat dalam file)
-            if (!empty($rowData['nama'])) {
+            if (! empty($rowData['nama'])) {
                 $seenInFile['nama'][] = strtolower($rowData['nama']);
             }
-            if (!empty($rowData['whatsapp_number'])) {
+            if (! empty($rowData['whatsapp_number'])) {
                 $seenInFile['whatsapp_number'][] = $rowData['whatsapp_number'];
             }
-            if (!empty($rowData['nik'])) {
+            if (! empty($rowData['nik'])) {
                 $seenInFile['nik'][] = $rowData['nik'];
             }
         }
@@ -68,7 +67,7 @@ class UserImportService
         $summary = self::buildSummary($rows);
 
         return [
-            'rows'    => $rows,
+            'rows' => $rows,
             'summary' => $summary,
         ];
     }
@@ -79,10 +78,10 @@ class UserImportService
     public static function validateRowData(array $rowData, array $excludeOtherRows = []): array
     {
         $rowData = self::normalizeRowData($rowData);
-        $errors  = self::validateRow($rowData, $excludeOtherRows);
+        $errors = self::validateRow($rowData, $excludeOtherRows);
 
         return [
-            'data'   => $rowData,
+            'data' => $rowData,
             'errors' => $errors,
             'status' => empty($errors) ? 'valid' : (self::hasFatalError($errors) ? 'error' : 'conflict'),
         ];
@@ -93,24 +92,24 @@ class UserImportService
      */
     public static function confirmImport(array $rows): array
     {
-        $imported  = 0;
-        $skipped   = 0;
-        $failed    = [];
+        $imported = 0;
+        $skipped = 0;
+        $failed = [];
 
         DB::transaction(function () use ($rows, &$imported, &$skipped, &$failed) {
             $seenInBatch = [
-                'nama'            => [],
+                'nama' => [],
                 'whatsapp_number' => [],
-                'nik'             => [],
+                'nik' => [],
             ];
 
             foreach ($rows as $row) {
                 // DEBUG: log row yang sedang diproses
                 \Log::info('Import row processing', [
                     'row_number' => $row['row_number'] ?? '?',
-                    'status'     => $row['status'] ?? '?',
-                    'skipped'    => $row['skipped'] ?? false,
-                    'data'       => $row['data'] ?? [],
+                    'status' => $row['status'] ?? '?',
+                    'skipped' => $row['skipped'] ?? false,
+                    'data' => $row['data'] ?? [],
                 ]);
 
                 $isSkipped = filter_var($row['skipped'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -118,8 +117,9 @@ class UserImportService
                     $skipped++;
                     \Log::info('Import row SKIPPED (status not valid)', [
                         'row_number' => $row['row_number'],
-                        'reason' => 'status=' . ($row['status'] ?? '?') . ', skipped=' . ($row['skipped'] ? 'true' : 'false'),
+                        'reason' => 'status='.($row['status'] ?? '?').', skipped='.($row['skipped'] ? 'true' : 'false'),
                     ]);
+
                     continue;
                 }
 
@@ -127,44 +127,45 @@ class UserImportService
 
                 // Re-validate one more time sebelum insert (safety)
                 $errors = self::validateRow($data, $seenInBatch);
-                if (!empty($errors)) {
+                if (! empty($errors)) {
                     $skipped++;
                     $failed[] = [
                         'row_number' => $row['row_number'],
-                        'name'       => $data['nama'] ?? '-',
-                        'errors'     => $errors,
+                        'name' => $data['nama'] ?? '-',
+                        'errors' => $errors,
                     ];
                     \Log::warning('Import row FAILED re-validation', [
                         'row_number' => $row['row_number'],
                         'errors' => $errors,
                     ]);
+
                     continue;
                 }
 
                 try {
                     $userData = [
-                        'name'            => $data['nama'],
+                        'name' => $data['nama'],
                         'whatsapp_number' => $data['whatsapp_number'],
-                        'password'        => $data['password'],
-                        'role'            => $data['role'],
-                        'is_active'       => true,
+                        'password' => $data['password'],
+                        'role' => $data['role'],
+                        'is_active' => true,
                     ];
 
                     $biodataData = [
-                        'nik'             => $data['nik'],
-                        'no_kk'           => $data['no_kk'] ?? null,
-                        'jenis_kelamin'   => $data['jenis_kelamin'],
-                        'tempat_lahir'    => $data['tempat_lahir'],
-                        'tanggal_lahir'   => $data['tanggal_lahir'],
-                        'alamat_jalan'    => $data['alamat_jalan'] ?? null,
-                        'alamat_rt'       => $data['alamat_rt'] ?? null,
-                        'alamat_rw'       => $data['alamat_rw'] ?? null,
-                        'alamat_dusun'    => $data['alamat_dusun'] ?? null,
-                        'alamat_desa'     => $data['alamat_desa'] ?? null,
+                        'nik' => $data['nik'],
+                        'no_kk' => $data['no_kk'] ?? null,
+                        'jenis_kelamin' => $data['jenis_kelamin'],
+                        'tempat_lahir' => $data['tempat_lahir'],
+                        'tanggal_lahir' => $data['tanggal_lahir'],
+                        'alamat_jalan' => $data['alamat_jalan'] ?? null,
+                        'alamat_rt' => $data['alamat_rt'] ?? null,
+                        'alamat_rw' => $data['alamat_rw'] ?? null,
+                        'alamat_dusun' => $data['alamat_dusun'] ?? null,
+                        'alamat_desa' => $data['alamat_desa'] ?? null,
                         'alamat_kecamatan' => $data['alamat_kecamatan'] ?? null,
                         'alamat_kabupaten' => $data['alamat_kabupaten'] ?? null,
                         'alamat_provinsi' => $data['alamat_provinsi'] ?? null,
-                        'alamat_kodepos'  => $data['alamat_kodepos'] ?? null,
+                        'alamat_kodepos' => $data['alamat_kodepos'] ?? null,
                     ];
 
                     UserRepository::createUser($userData, $biodataData);
@@ -175,15 +176,15 @@ class UserImportService
                         'name' => $data['nama'],
                     ]);
 
-                    $seenInBatch['nama'][]            = strtolower($data['nama']);
+                    $seenInBatch['nama'][] = strtolower($data['nama']);
                     $seenInBatch['whatsapp_number'][] = $data['whatsapp_number'];
-                    $seenInBatch['nik'][]             = $data['nik'];
+                    $seenInBatch['nik'][] = $data['nik'];
                 } catch (\Exception $e) {
                     $skipped++;
                     $failed[] = [
                         'row_number' => $row['row_number'],
-                        'name'       => $data['nama'] ?? '-',
-                        'errors'     => ['general' => $e->getMessage()],
+                        'name' => $data['nama'] ?? '-',
+                        'errors' => ['general' => $e->getMessage()],
                     ];
                     \Log::error('Import row EXCEPTION', [
                         'row_number' => $row['row_number'],
@@ -195,8 +196,8 @@ class UserImportService
 
         return [
             'imported' => $imported,
-            'skipped'  => $skipped,
-            'failed'   => $failed,
+            'skipped' => $skipped,
+            'failed' => $failed,
         ];
     }
 
@@ -206,26 +207,26 @@ class UserImportService
     protected static function normalizeRowData(array $row): array
     {
         $normalized = [
-            'nama'            => self::trimOrNull($row['nama'] ?? null),
-            'role'            => strtolower(trim($row['role'] ?? '')),
-            'password'        => (string) ($row['password'] ?? ''),
+            'nama' => self::trimOrNull($row['nama'] ?? null),
+            'role' => strtolower(trim($row['role'] ?? '')),
+            'password' => (string) ($row['password'] ?? ''),
             'whatsapp_number' => self::normalizeWhatsApp($row['whatsapp_number'] ?? null),
-            'nik'             => self::normalizeNik($row['nik'] ?? null),
-            'no_kk'           => self::normalizeNik($row['no_kk'] ?? null),
-            'jenis_kelamin'   => strtoupper(trim($row['jenis_kelamin'] ?? '')),
-            'tempat_lahir'    => self::trimOrNull($row['tempat_lahir'] ?? null),
-            'tanggal_lahir'   => self::normalizeDate($row['tanggal_lahir'] ?? null),
+            'nik' => self::normalizeNik($row['nik'] ?? null),
+            'no_kk' => self::normalizeNik($row['no_kk'] ?? null),
+            'jenis_kelamin' => strtoupper(trim($row['jenis_kelamin'] ?? '')),
+            'tempat_lahir' => self::trimOrNull($row['tempat_lahir'] ?? null),
+            'tanggal_lahir' => self::normalizeDate($row['tanggal_lahir'] ?? null),
 
             // Alamat (semua optional)
-            'alamat_jalan'      => self::trimOrNull($row['alamat_jalan'] ?? null),
-            'alamat_rt'         => self::trimOrNull($row['alamat_rt'] ?? null),
-            'alamat_rw'         => self::trimOrNull($row['alamat_rw'] ?? null),
-            'alamat_dusun'      => self::trimOrNull($row['alamat_dusun'] ?? null),
-            'alamat_desa'       => self::trimOrNull($row['alamat_desa'] ?? null),
-            'alamat_kecamatan'  => self::trimOrNull($row['alamat_kecamatan'] ?? null),
-            'alamat_kabupaten'  => self::trimOrNull($row['alamat_kabupaten'] ?? null),
-            'alamat_provinsi'   => self::trimOrNull($row['alamat_provinsi'] ?? null),
-            'alamat_kodepos'    => self::trimOrNull($row['alamat_kodepos'] ?? null),
+            'alamat_jalan' => self::trimOrNull($row['alamat_jalan'] ?? null),
+            'alamat_rt' => self::trimOrNull($row['alamat_rt'] ?? null),
+            'alamat_rw' => self::trimOrNull($row['alamat_rw'] ?? null),
+            'alamat_dusun' => self::trimOrNull($row['alamat_dusun'] ?? null),
+            'alamat_desa' => self::trimOrNull($row['alamat_desa'] ?? null),
+            'alamat_kecamatan' => self::trimOrNull($row['alamat_kecamatan'] ?? null),
+            'alamat_kabupaten' => self::trimOrNull($row['alamat_kabupaten'] ?? null),
+            'alamat_provinsi' => self::trimOrNull($row['alamat_provinsi'] ?? null),
+            'alamat_kodepos' => self::trimOrNull($row['alamat_kodepos'] ?? null),
         ];
 
         return $normalized;
@@ -233,37 +234,48 @@ class UserImportService
 
     protected static function trimOrNull($value): ?string
     {
-        if ($value === null || $value === '') return null;
+        if ($value === null || $value === '') {
+            return null;
+        }
         $trimmed = trim((string) $value);
+
         return $trimmed === '' ? null : $trimmed;
     }
 
     protected static function normalizeWhatsApp($value): ?string
     {
-        if ($value === null || $value === '') return null;
+        if ($value === null || $value === '') {
+            return null;
+        }
         $clean = preg_replace('/[\s\+\-\(\)]/', '', (string) $value);
         if (str_starts_with($clean, '62')) {
-            $clean = '0' . substr($clean, 2);
+            $clean = '0'.substr($clean, 2);
         }
+
         return $clean === '' ? null : $clean;
     }
 
     protected static function normalizeNik($value): ?string
     {
-        if ($value === null || $value === '') return null;
+        if ($value === null || $value === '') {
+            return null;
+        }
         // Hilangkan spasi dan strip leading zero kalau ada
         $clean = preg_replace('/[\s]/', '', (string) $value);
+
         return $clean === '' ? null : $clean;
     }
 
     protected static function normalizeDate($value): ?string
     {
-        if ($value === null || $value === '') return null;
+        if ($value === null || $value === '') {
+            return null;
+        }
 
         // Excel kadang return numeric date (e.g. 33239 = 1990-12-25)
         if (is_numeric($value)) {
             try {
-                return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value)
+                return Date::excelToDateTimeObject($value)
                     ->format('Y-m-d');
             } catch (\Exception $e) {
                 return null;
@@ -292,7 +304,7 @@ class UserImportService
 
         if (empty($data['role'])) {
             $errors['role'] = 'Role wajib diisi.';
-        } elseif (!in_array($data['role'], ['pasien', 'pmo'])) {
+        } elseif (! in_array($data['role'], ['pasien', 'pmo'])) {
             $errors['role'] = 'Role harus "pasien" atau "pmo".';
         }
 
@@ -302,23 +314,23 @@ class UserImportService
 
         if (empty($data['whatsapp_number'])) {
             $errors['whatsapp_number'] = 'WhatsApp wajib diisi.';
-        } elseif (!preg_match('/^[0-9]{10,15}$/', $data['whatsapp_number'])) {
+        } elseif (! preg_match('/^[0-9]{10,15}$/', $data['whatsapp_number'])) {
             $errors['whatsapp_number'] = 'Format WhatsApp tidak valid.';
         }
 
         if (empty($data['nik'])) {
             $errors['nik'] = 'NIK wajib diisi.';
-        } elseif (!preg_match('/^[0-9]{16}$/', $data['nik'])) {
+        } elseif (! preg_match('/^[0-9]{16}$/', $data['nik'])) {
             $errors['nik'] = 'NIK harus 16 digit angka.';
         }
 
-        if (!empty($data['no_kk']) && !preg_match('/^[0-9]{16}$/', $data['no_kk'])) {
+        if (! empty($data['no_kk']) && ! preg_match('/^[0-9]{16}$/', $data['no_kk'])) {
             $errors['no_kk'] = 'No KK harus 16 digit angka.';
         }
 
         if (empty($data['jenis_kelamin'])) {
             $errors['jenis_kelamin'] = 'Jenis kelamin wajib diisi.';
-        } elseif (!in_array($data['jenis_kelamin'], ['L', 'P'])) {
+        } elseif (! in_array($data['jenis_kelamin'], ['L', 'P'])) {
             $errors['jenis_kelamin'] = 'Jenis kelamin harus "L" atau "P".';
         }
 
@@ -341,7 +353,7 @@ class UserImportService
 
         // ========== CONFLICTS (duplikat di DB atau di file) ==========
 
-        if (!empty($data['nama'])) {
+        if (! empty($data['nama'])) {
             // Cek di DB
             if (User::where('name', $data['nama'])->exists()) {
                 $errors['nama'] = 'Nama sudah terdaftar di sistem.';
@@ -352,7 +364,7 @@ class UserImportService
             }
         }
 
-        if (!empty($data['whatsapp_number']) && empty($errors['whatsapp_number'])) {
+        if (! empty($data['whatsapp_number']) && empty($errors['whatsapp_number'])) {
             if (User::where('whatsapp_number', $data['whatsapp_number'])->exists()) {
                 $errors['whatsapp_number'] = 'WhatsApp sudah terdaftar di sistem.';
             } elseif (in_array($data['whatsapp_number'], $seenInFile['whatsapp_number'] ?? [])) {
@@ -360,7 +372,7 @@ class UserImportService
             }
         }
 
-        if (!empty($data['nik']) && empty($errors['nik'])) {
+        if (! empty($data['nik']) && empty($errors['nik'])) {
             if (UserBiodata::where('nik', $data['nik'])->exists()) {
                 $errors['nik'] = 'NIK sudah terdaftar di sistem.';
             } elseif (in_array($data['nik'], $seenInFile['nik'] ?? [])) {
@@ -383,17 +395,19 @@ class UserImportService
             if (str_contains(strtolower($msg), 'duplikat') || str_contains(strtolower($msg), 'sudah terdaftar')) {
                 continue;
             }
+
             // Selain itu fatal
             return true;
         }
+
         return false;
     }
 
     protected static function buildSummary(array $rows): array
     {
-        $valid    = 0;
+        $valid = 0;
         $conflict = 0;
-        $error    = 0;
+        $error = 0;
 
         foreach ($rows as $row) {
             switch ($row['status']) {
@@ -410,10 +424,10 @@ class UserImportService
         }
 
         return [
-            'total'    => count($rows),
-            'valid'    => $valid,
+            'total' => count($rows),
+            'valid' => $valid,
             'conflict' => $conflict,
-            'error'    => $error,
+            'error' => $error,
         ];
     }
 }

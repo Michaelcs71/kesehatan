@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\{HasCrudViews, HasCrudOperations};
-use App\Http\Requests\MasterObat\{IndexRequest, StoreUpdateRequest, VerifikasiRequest};
+use App\Http\Controllers\Concerns\HasCrudOperations;
+use App\Http\Controllers\Concerns\HasCrudViews;
+use App\Http\Requests\MasterObat\IndexRequest;
+use App\Http\Requests\MasterObat\StoreUpdateRequest;
+use App\Http\Requests\MasterObat\VerifikasiRequest;
 use App\Services\MasterObatService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
  * Controller for Master Obat CRUD + Verifikasi
  */
 class MasterObatController extends BaseController
 {
-    use HasCrudViews, HasCrudOperations;
+    use HasCrudOperations, HasCrudViews;
 
     protected function getViewPath(): string
     {
@@ -82,7 +84,7 @@ class MasterObatController extends BaseController
     {
         $obat = MasterObatService::findObatById($id);
 
-        if (!$obat) {
+        if (! $obat) {
             return $this->redirectToIndexWithError();
         }
 
@@ -96,7 +98,7 @@ class MasterObatController extends BaseController
     {
         $obat = MasterObatService::findObatById($id);
 
-        if (!$obat) {
+        if (! $obat) {
             return $this->errorResponse('Data tidak ditemukan', 404);
         }
 

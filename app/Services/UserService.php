@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\UserRole;
 use App\Helpers\PermissionHelper;
 use App\Models\User;
 use App\Repos\UserRepository;
@@ -40,7 +39,7 @@ class UserService
 
         return [
             'TotalRows' => $data->total(),
-            'Rows'      => $data->items(),
+            'Rows' => $data->items(),
         ];
     }
 
@@ -58,10 +57,10 @@ class UserService
      */
     public static function createUser(array $userData, array $biodataData = []): User
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
-        if (!$loggedInUser->isSuperadmin()) {
+        if (! $loggedInUser->isSuperadmin()) {
             if (in_array($userData['role'] ?? '', ['admin', 'superadmin'])) {
                 throw new \Exception('Anda tidak memiliki izin untuk membuat user dengan role admin/superadmin.');
             }
@@ -75,18 +74,18 @@ class UserService
      */
     public static function updateUser(string $id, array $userData, array $biodataData = []): bool
     {
-        $target       = UserRepository::findUserById($id);
-        /** @var \App\Models\User $loggedInUser */
+        $target = UserRepository::findUserById($id);
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
-        if (!$target) {
+        if (! $target) {
             return false;
         }
 
-        if (!$loggedInUser->isSuperadmin()) {
+        if (! $loggedInUser->isSuperadmin()) {
             $isSelf = $target->id === $loggedInUser->id;
 
-            if (!$isSelf && in_array($target->role->value, ['admin', 'superadmin'])) {
+            if (! $isSelf && in_array($target->role->value, ['admin', 'superadmin'])) {
                 throw new \Exception('Anda tidak memiliki izin untuk mengubah user dengan role admin/superadmin.');
             }
 
@@ -94,7 +93,7 @@ class UserService
                 throw new \Exception('Anda tidak dapat mengubah role akun Anda sendiri.');
             }
 
-            if (!$isSelf && in_array($userData['role'] ?? '', ['admin', 'superadmin'])) {
+            if (! $isSelf && in_array($userData['role'] ?? '', ['admin', 'superadmin'])) {
                 throw new \Exception('Anda tidak memiliki izin untuk memberikan role admin/superadmin.');
             }
         }
@@ -104,11 +103,11 @@ class UserService
 
     public static function deleteUser(string $id): bool
     {
-        $target       = UserRepository::findUserById($id);
-        /** @var \App\Models\User $loggedInUser */
+        $target = UserRepository::findUserById($id);
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
-        if (!$target) {
+        if (! $target) {
             return false;
         }
 
@@ -116,7 +115,7 @@ class UserService
             throw new \Exception('Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
-        if (!$loggedInUser->isSuperadmin() && in_array($target->role->value, ['admin', 'superadmin'])) {
+        if (! $loggedInUser->isSuperadmin() && in_array($target->role->value, ['admin', 'superadmin'])) {
             throw new \Exception('Anda tidak memiliki izin untuk menghapus user dengan role admin/superadmin.');
         }
 
@@ -125,44 +124,44 @@ class UserService
 
     public static function getAvailableRoles(): array
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         if ($loggedInUser->isSuperadmin()) {
             return [
                 'pengunjung' => 'Pengunjung',
-                'pasien'     => 'Pasien',
-                'pmo'        => 'PMO',
-                'admin'      => 'Admin',
+                'pasien' => 'Pasien',
+                'pmo' => 'PMO',
+                'admin' => 'Admin',
                 'superadmin' => 'Superadmin',
             ];
         }
 
         return [
             'pengunjung' => 'Pengunjung',
-            'pasien'     => 'Pasien',
-            'pmo'        => 'PMO',
+            'pasien' => 'Pasien',
+            'pmo' => 'PMO',
         ];
     }
 
     public static function getStats(): array
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         if ($loggedInUser->isSuperadmin()) {
             return [
-                'total'      => User::count(),
+                'total' => User::count(),
                 'superadmin' => User::where('role', 'superadmin')->count(),
-                'admin'      => User::where('role', 'admin')->count(),
-                'pmo'        => User::where('role', 'pmo')->count(),
-                'pasien'     => User::where('role', 'pasien')->count(),
+                'admin' => User::where('role', 'admin')->count(),
+                'pmo' => User::where('role', 'pmo')->count(),
+                'pasien' => User::where('role', 'pasien')->count(),
             ];
         }
 
         return [
-            'total'  => User::whereIn('role', ['pmo', 'pasien', 'pengunjung'])->count() + 1,
-            'pmo'    => User::where('role', 'pmo')->count(),
+            'total' => User::whereIn('role', ['pmo', 'pasien', 'pengunjung'])->count() + 1,
+            'pmo' => User::where('role', 'pmo')->count(),
             'pasien' => User::where('role', 'pasien')->count(),
         ];
     }
@@ -173,19 +172,19 @@ class UserService
 
     public static function getPermissionEditorData(string $userId): array
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
-        if (!$loggedInUser->isSuperadmin()) {
+        if (! $loggedInUser->isSuperadmin()) {
             throw new \Exception('Hanya superadmin yang dapat mengelola permission user.');
         }
 
         $user = UserRepository::findUserById($userId);
-        if (!$user) {
+        if (! $user) {
             throw new \Exception('User tidak ditemukan.');
         }
 
-        $summary         = PermissionHelper::getUserPermissionSummary($user);
+        $summary = PermissionHelper::getUserPermissionSummary($user);
         $allGroupedPerms = PermissionHelper::getGroupedPermissions();
         $effectiveLookup = array_flip($summary['effective_permissions']);
 
@@ -196,27 +195,27 @@ class UserService
         }
 
         return [
-            'user_id'             => $user->id,
-            'user_name'           => $user->name,
-            'user_role'           => $user->role?->value,
-            'user_role_label'     => $user->role?->label() ?? '-',
-            'is_overridden'       => (bool) $user->permission_overridden,
-            'summary'             => $summary,
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'user_role' => $user->role?->value,
+            'user_role_label' => $user->role?->label() ?? '-',
+            'is_overridden' => (bool) $user->permission_overridden,
+            'summary' => $summary,
             'grouped_permissions' => $allGroupedPerms,
         ];
     }
 
     public static function updateUserPermissions(string $userId, array $selectedPermissions): bool
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
-        if (!$loggedInUser->isSuperadmin()) {
+        if (! $loggedInUser->isSuperadmin()) {
             throw new \Exception('Hanya superadmin yang dapat mengelola permission user.');
         }
 
         $user = UserRepository::findUserById($userId);
-        if (!$user) {
+        if (! $user) {
             throw new \Exception('User tidak ditemukan.');
         }
 
@@ -237,15 +236,15 @@ class UserService
 
     public static function resetUserPermissions(string $userId): bool
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
-        if (!$loggedInUser->isSuperadmin()) {
+        if (! $loggedInUser->isSuperadmin()) {
             throw new \Exception('Hanya superadmin yang dapat mereset permission user.');
         }
 
         $user = UserRepository::findUserById($userId);
-        if (!$user) {
+        if (! $user) {
             throw new \Exception('User tidak ditemukan.');
         }
 
@@ -255,6 +254,7 @@ class UserService
 
         return DB::transaction(function () use ($user) {
             $user->disablePermissionOverride();
+
             return true;
         });
     }
@@ -268,11 +268,11 @@ class UserService
      */
     public static function resetPassword(string $userId, string $newPassword): bool
     {
-        $target       = UserRepository::findUserById($userId);
-        /** @var \App\Models\User $loggedInUser */
+        $target = UserRepository::findUserById($userId);
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
-        if (!$target) {
+        if (! $target) {
             throw new \Exception('User tidak ditemukan.');
         }
 
@@ -282,7 +282,7 @@ class UserService
         }
 
         // Admin biasa tidak bisa reset password admin/superadmin
-        if (!$loggedInUser->isSuperadmin() && in_array($target->role->value, ['admin', 'superadmin'])) {
+        if (! $loggedInUser->isSuperadmin() && in_array($target->role->value, ['admin', 'superadmin'])) {
             throw new \Exception('Anda tidak memiliki izin untuk reset password user admin/superadmin.');
         }
 

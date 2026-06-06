@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PengingatCgdLog\{IndexRequest, StoreRequest, UpdateRequest};
+use App\Http\Requests\PengingatCgdLog\IndexRequest;
+use App\Http\Requests\PengingatCgdLog\StoreRequest;
+use App\Http\Requests\PengingatCgdLog\UpdateRequest;
 use App\Services\PengingatCgdLogService;
 use Illuminate\Http\JsonResponse;
 
@@ -15,18 +17,19 @@ class PengingatCgdLogController extends Controller
 
     public function index()
     {
-        return view($this->getViewPath() . '.index');
+        return view($this->getViewPath().'.index');
     }
 
     public function getData(IndexRequest $request): JsonResponse
     {
         $data = PengingatCgdLogService::getAllLogs($request->validated());
+
         return response()->json($data);
     }
 
     public function create()
     {
-        return view($this->getViewPath() . '.form');
+        return view($this->getViewPath().'.form');
     }
 
     public function store(StoreRequest $request): JsonResponse
@@ -40,7 +43,7 @@ class PengingatCgdLogController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Hasil cek gula darah berhasil disimpan.',
-                'data'    => $log,
+                'data' => $log,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -54,19 +57,19 @@ class PengingatCgdLogController extends Controller
     {
         $log = PengingatCgdLogService::findLogById($id);
 
-        if (!$log) {
+        if (! $log) {
             return redirect()->route('pengingat-cgd.index')
                 ->with('error', 'Log tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.show', compact('id'));
+        return view($this->getViewPath().'.show', compact('id'));
     }
 
     public function showData(string $id): JsonResponse
     {
         $log = PengingatCgdLogService::findLogById($id);
 
-        if (!$log) {
+        if (! $log) {
             return response()->json(['message' => 'Data tidak ditemukan'], 404);
         }
 
@@ -77,12 +80,12 @@ class PengingatCgdLogController extends Controller
     {
         $log = PengingatCgdLogService::findLogById($id);
 
-        if (!$log) {
+        if (! $log) {
             return redirect()->route('pengingat-cgd.index')
                 ->with('error', 'Log tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.form', compact('id'));
+        return view($this->getViewPath().'.form', compact('id'));
     }
 
     public function update(UpdateRequest $request, string $id): JsonResponse
@@ -110,6 +113,7 @@ class PengingatCgdLogController extends Controller
     {
         try {
             PengingatCgdLogService::deleteLog($id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Log berhasil dihapus.',
@@ -126,6 +130,7 @@ class PengingatCgdLogController extends Controller
     {
         try {
             PengingatCgdLogService::deactivate($id);
+
             return response()->json(['success' => true, 'message' => 'Log dinonaktifkan.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -136,6 +141,7 @@ class PengingatCgdLogController extends Controller
     {
         try {
             PengingatCgdLogService::activate($id);
+
             return response()->json(['success' => true, 'message' => 'Log diaktifkan.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);

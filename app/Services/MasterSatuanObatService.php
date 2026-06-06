@@ -32,7 +32,7 @@ class MasterSatuanObatService
 
         return [
             'TotalRows' => $data->total(),
-            'Rows'      => $data->items(),
+            'Rows' => $data->items(),
         ];
     }
 
@@ -41,18 +41,21 @@ class MasterSatuanObatService
         if (empty($id) || in_array($id, ['create', 'edit'])) {
             return null;
         }
+
         return MasterSatuanObatRepository::findMasterSatuanObatById($id);
     }
 
     public static function createMasterSatuanObat(array $data): MasterSatuanObat
     {
         $data['created_by'] = Auth::id();
+
         return MasterSatuanObatRepository::createMasterSatuanObat($data);
     }
 
     public static function updateMasterSatuanObat(string $id, array $data): bool
     {
         $data['updated_by'] = Auth::id();
+
         return MasterSatuanObatRepository::updateMasterSatuanObat($id, $data);
     }
 
@@ -60,7 +63,7 @@ class MasterSatuanObatService
     {
         $satuan = MasterSatuanObatRepository::findMasterSatuanObatById($id);
 
-        if (!$satuan) {
+        if (! $satuan) {
             return false;
         }
 
@@ -79,8 +82,8 @@ class MasterSatuanObatService
     public static function getStats(): array
     {
         return [
-            'total'    => MasterSatuanObat::count(),
-            'active'   => MasterSatuanObat::where('is_active', true)->count(),
+            'total' => MasterSatuanObat::count(),
+            'active' => MasterSatuanObat::where('is_active', true)->count(),
             'inactive' => MasterSatuanObat::where('is_active', false)->count(),
         ];
     }

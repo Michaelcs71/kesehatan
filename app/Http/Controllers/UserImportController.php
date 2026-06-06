@@ -6,6 +6,10 @@ use App\Services\UserImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class UserImportController extends Controller
@@ -18,7 +22,7 @@ class UserImportController extends Controller
         $path = storage_path('app/templates/user_import_template.xlsx');
 
         // Generate template kalau belum ada
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             $this->generateTemplate($path);
         }
 
@@ -36,8 +40,8 @@ class UserImportController extends Controller
             'file' => ['required', 'file', 'mimes:xlsx,xls', 'max:5120'], // max 5MB
         ], [
             'file.required' => 'File Excel wajib di-upload.',
-            'file.mimes'    => 'File harus berformat .xlsx atau .xls',
-            'file.max'      => 'Ukuran file maksimal 5 MB.',
+            'file.mimes' => 'File harus berformat .xlsx atau .xls',
+            'file.max' => 'Ukuran file maksimal 5 MB.',
         ]);
 
         try {
@@ -45,12 +49,12 @@ class UserImportController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data'    => $result,
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal parsing file: ' . $e->getMessage(),
+                'message' => 'Gagal parsing file: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -61,23 +65,23 @@ class UserImportController extends Controller
     public function validateRow(Request $request): JsonResponse
     {
         $request->validate([
-            'data'             => ['required', 'array'],
-            'exclude_namas'    => ['nullable', 'array'],
-            'exclude_was'      => ['nullable', 'array'],
-            'exclude_niks'     => ['nullable', 'array'],
+            'data' => ['required', 'array'],
+            'exclude_namas' => ['nullable', 'array'],
+            'exclude_was' => ['nullable', 'array'],
+            'exclude_niks' => ['nullable', 'array'],
         ]);
 
         $excludeOtherRows = [
-            'nama'            => $request->input('exclude_namas', []),
+            'nama' => $request->input('exclude_namas', []),
             'whatsapp_number' => $request->input('exclude_was', []),
-            'nik'             => $request->input('exclude_niks', []),
+            'nik' => $request->input('exclude_niks', []),
         ];
 
         $result = UserImportService::validateRowData($request->input('data'), $excludeOtherRows);
 
         return response()->json([
             'success' => true,
-            'data'    => $result,
+            'data' => $result,
         ]);
     }
 
@@ -96,12 +100,12 @@ class UserImportController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Berhasil import {$result['imported']} user.",
-                'data'    => $result,
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal melakukan import: ' . $e->getMessage(),
+                'message' => 'Gagal melakukan import: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -112,12 +116,12 @@ class UserImportController extends Controller
     protected function generateTemplate(string $path): void
     {
         $dir = dirname($path);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet       = $spreadsheet->getActiveSheet();
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Import User');
 
         // Row 1: Title
@@ -154,21 +158,21 @@ class UserImportController extends Controller
         ];
 
         foreach ($headers as $col => [$val, $required]) {
-            $sheet->setCellValue($col . '3', $val);
+            $sheet->setCellValue($col.'3', $val);
 
             // Warna merah kalau wajib
             if ($required) {
-                $sheet->getStyle($col . '3')->getFont()->getColor()->setRGB('C0392B');
+                $sheet->getStyle($col.'3')->getFont()->getColor()->setRGB('C0392B');
             }
         }
 
         // Style header row
         $sheet->getStyle('A3:R3')->getFont()->setBold(true);
         $sheet->getStyle('A3:R3')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setRGB('D5E4FA');
         $sheet->getStyle('A3:R3')->getBorders()->getAllBorders()
-            ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            ->setBorderStyle(Border::BORDER_THIN);
         $sheet->getStyle('A3:R3')->getAlignment()->setHorizontal('center');
 
         // Row 4: Contoh data (ada label "[CONTOH - HAPUS BARIS INI]" supaya jelas)
@@ -194,12 +198,12 @@ class UserImportController extends Controller
         ];
 
         foreach ($sample as $col => $val) {
-            $sheet->setCellValue($col . '4', $val);
+            $sheet->setCellValue($col.'4', $val);
         }
 
         // Warna sample row jadi kuning + italic biar jelas "ini contoh"
         $sheet->getStyle('A4:R4')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setRGB('FFF3CD');
         $sheet->getStyle('A4:R4')->getFont()->setItalic(true)->getColor()->setRGB('856404');
 
@@ -209,7 +213,7 @@ class UserImportController extends Controller
         $sheet->getStyle('A5')->getFont()->setBold(true)->setSize(11)->getColor()->setRGB('C0392B');
         $sheet->getStyle('A5')->getAlignment()->setHorizontal('center');
         $sheet->getStyle('A5')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setRGB('FFE5E5');
 
         // Set column widths
@@ -221,7 +225,7 @@ class UserImportController extends Controller
         $sheet->freezePane('A6');
 
         // Write file
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer = new Xlsx($spreadsheet);
         $writer->save($path);
     }
 }

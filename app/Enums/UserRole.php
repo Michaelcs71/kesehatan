@@ -14,9 +14,9 @@ enum UserRole: string
     {
         return match ($this) {
             self::PENGUNJUNG => 'Pengunjung',
-            self::PASIEN     => 'Pasien',
-            self::PMO        => 'PMO (Pendamping Minum Obat)',
-            self::ADMIN      => 'Admin',
+            self::PASIEN => 'Pasien',
+            self::PMO => 'PMO (Pendamping Minum Obat)',
+            self::ADMIN => 'Admin',
             self::SUPERADMIN => 'Super Admin',
         };
     }
@@ -25,9 +25,9 @@ enum UserRole: string
     {
         return match ($this) {
             self::PENGUNJUNG => 'secondary',
-            self::PASIEN     => 'primary',
-            self::PMO        => 'success',
-            self::ADMIN      => 'warning',
+            self::PASIEN => 'primary',
+            self::PMO => 'success',
+            self::ADMIN => 'warning',
             self::SUPERADMIN => 'danger',
         };
     }

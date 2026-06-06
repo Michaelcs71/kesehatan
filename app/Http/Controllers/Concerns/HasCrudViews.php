@@ -22,7 +22,7 @@ trait HasCrudViews
      */
     protected function indexView(array $data = []): View
     {
-        return view($this->getViewPath() . '.index', $data);
+        return view($this->getViewPath().'.index', $data);
     }
 
     /**
@@ -30,7 +30,7 @@ trait HasCrudViews
      */
     protected function createView(array $data = []): View
     {
-        return view($this->getViewPath() . '.form', $data);
+        return view($this->getViewPath().'.form', $data);
     }
 
     /**
@@ -39,7 +39,8 @@ trait HasCrudViews
     protected function editView(string $id, array $data = []): View
     {
         $data['id'] = $id;
-        return view($this->getViewPath() . '.form', $data);
+
+        return view($this->getViewPath().'.form', $data);
     }
 
     /**
@@ -48,7 +49,8 @@ trait HasCrudViews
     protected function showView(string $id, array $data = []): View
     {
         $data['id'] = $id;
-        return view($this->getViewPath() . '.show', $data);
+
+        return view($this->getViewPath().'.show', $data);
     }
 
     /**
@@ -56,7 +58,7 @@ trait HasCrudViews
      */
     protected function redirectToIndexWithError(string $message = 'Data tidak ditemukan'): RedirectResponse
     {
-        return redirect()->route($this->getRouteName() . '.index')->with('error', $message);
+        return redirect()->route($this->getRouteName().'.index')->with('error', $message);
     }
 
     /**
@@ -64,6 +66,6 @@ trait HasCrudViews
      */
     protected function redirectToIndexWithSuccess(string $message): RedirectResponse
     {
-        return redirect()->route($this->getRouteName() . '.index')->with('success', $message);
+        return redirect()->route($this->getRouteName().'.index')->with('success', $message);
     }
 }

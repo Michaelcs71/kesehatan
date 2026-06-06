@@ -4,26 +4,31 @@ namespace App\Services;
 
 use App\Models\JadwalMinumObat;
 use App\Models\PengingatMoLog;
+use App\Models\User;
 use App\Repos\PengingatMoLogRepository;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\Encoders\JpegEncoder;  // ← TAMBAH BARIS INI
+use Intervention\Image\Encoders\JpegEncoder;
+use Intervention\Image\ImageManager;
+
+  // ← TAMBAH BARIS INI
 
 class PengingatMoLogService
 {
     const FOTO_PATH = 'pengingat-mo';
+
     const MAX_WIDTH = 1280;        // max width foto setelah compress
+
     const QUALITY = 75;            // JPEG quality (0-100, 75 = balanced)
 
     public static function getAllLogs(array $params): array
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
-        $forPmoUserId    = null;
+        $forPmoUserId = null;
         $forPasienUserId = null;
 
         if ($user->isPmo()) {
@@ -47,13 +52,16 @@ class PengingatMoLogService
 
         return [
             'TotalRows' => $data->total(),
-            'Rows'      => $data->items(),
+            'Rows' => $data->items(),
         ];
     }
 
     public static function findLogById(string $id): ?PengingatMoLog
     {
-        if (empty($id) || in_array($id, ['create', 'edit'])) return null;
+        if (empty($id) || in_array($id, ['create', 'edit'])) {
+            return null;
+        }
+
         return PengingatMoLogRepository::findLogById($id);
     }
 
@@ -62,10 +70,10 @@ class PengingatMoLogService
      */
     public static function getJadwalOptions(): array
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
-        $pmoUserId    = null;
+        $pmoUserId = null;
         $pasienUserId = null;
 
         if ($user->isPmo()) {
@@ -82,7 +90,7 @@ class PengingatMoLogService
      */
     public static function createLog(array $data, UploadedFile $foto): PengingatMoLog
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         // Load jadwal untuk snapshot data
@@ -90,7 +98,7 @@ class PengingatMoLogService
             ->where('status', 'aktif')
             ->find($data['id_jo']);
 
-        if (!$jadwal) {
+        if (! $jadwal) {
             throw new \Exception('Jadwal minum obat tidak ditemukan atau sudah nonaktif.');
         }
 
@@ -107,17 +115,17 @@ class PengingatMoLogService
         );
 
         return PengingatMoLogRepository::createLog([
-            'id_jo'           => $jadwal->id,
-            'id_user'         => $user->id,
-            'nama_pasien'     => $jadwal->pasienPmo?->nama_pasien ?? '-',
-            'nama_obat'       => $jadwal->obat?->nama ?? '-',
-            'tgl_minum_obat'  => $data['tgl_minum_obat'],
-            'jam_minum_obat'  => $data['jam_minum_obat'],
+            'id_jo' => $jadwal->id,
+            'id_user' => $user->id,
+            'nama_pasien' => $jadwal->pasienPmo?->nama_pasien ?? '-',
+            'nama_obat' => $jadwal->obat?->nama ?? '-',
+            'tgl_minum_obat' => $data['tgl_minum_obat'],
+            'jam_minum_obat' => $data['jam_minum_obat'],
             'jam_slot_target' => $data['jam_slot_target'] ?? null,
-            'patuh_menit'     => $patuhMenit,
-            'foto_obat'       => $fotoPath,
-            'status'          => 'aktif',
-            'created_by'      => $user->id,
+            'patuh_menit' => $patuhMenit,
+            'foto_obat' => $fotoPath,
+            'status' => 'aktif',
+            'created_by' => $user->id,
         ]);
     }
 
@@ -126,20 +134,22 @@ class PengingatMoLogService
      */
     public static function updateLog(string $id, array $data, ?UploadedFile $foto = null): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $log = PengingatMoLogRepository::findLogById($id);
-        if (!$log) throw new \Exception('Log tidak ditemukan.');
+        if (! $log) {
+            throw new \Exception('Log tidak ditemukan.');
+        }
 
         self::authorizeLogAccess($log, $user);
 
         $updateData = [
-            'tgl_minum_obat'  => $data['tgl_minum_obat'],
-            'jam_minum_obat'  => $data['jam_minum_obat'],
+            'tgl_minum_obat' => $data['tgl_minum_obat'],
+            'jam_minum_obat' => $data['jam_minum_obat'],
             'jam_slot_target' => $data['jam_slot_target'] ?? null,
-            'status'          => $data['status'] ?? $log->status,
-            'updated_by'      => $user->id,
+            'status' => $data['status'] ?? $log->status,
+            'updated_by' => $user->id,
         ];
 
         // Recalc patuh_menit
@@ -164,30 +174,38 @@ class PengingatMoLogService
 
     public static function deactivate(string $id): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $log = PengingatMoLogRepository::findLogById($id);
-        if (!$log) throw new \Exception('Log tidak ditemukan.');
+        if (! $log) {
+            throw new \Exception('Log tidak ditemukan.');
+        }
         self::authorizeLogAccess($log, $user);
+
         return PengingatMoLogRepository::deactivate($id, $user->id);
     }
 
     public static function activate(string $id): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $log = PengingatMoLogRepository::findLogById($id);
-        if (!$log) throw new \Exception('Log tidak ditemukan.');
+        if (! $log) {
+            throw new \Exception('Log tidak ditemukan.');
+        }
         self::authorizeLogAccess($log, $user);
+
         return PengingatMoLogRepository::activate($id, $user->id);
     }
 
     public static function deleteLog(string $id): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $log = PengingatMoLogRepository::findLogById($id);
-        if (!$log) throw new \Exception('Log tidak ditemukan.');
+        if (! $log) {
+            throw new \Exception('Log tidak ditemukan.');
+        }
         self::authorizeLogAccess($log, $user);
 
         // Optional: delete foto file
@@ -200,11 +218,10 @@ class PengingatMoLogService
     /**
      * Upload foto + compress otomatis (Intervention Image v3)
      */
-
     protected static function uploadFoto(UploadedFile $file): string
     {
         // Intervention Image v4 syntax
-        $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver);
 
         // decode() menggantikan read() di v4
         $image = $manager->decode($file->getRealPath());
@@ -239,16 +256,16 @@ class PengingatMoLogService
      */
     public static function getStats(): array
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $base = PengingatMoLog::query();
 
         // Apply role filter
         if ($user->isPmo()) {
-            $base->whereHas('jadwalMo.pasienPmo', fn($q) => $q->where('pmo_user_id', $user->id));
+            $base->whereHas('jadwalMo.pasienPmo', fn ($q) => $q->where('pmo_user_id', $user->id));
         } elseif ($user->isPasien()) {
-            $base->whereHas('jadwalMo.pasienPmo', fn($q) => $q->where('id_user', $user->id));
+            $base->whereHas('jadwalMo.pasienPmo', fn ($q) => $q->where('id_user', $user->id));
         }
 
         $today = (clone $base)->today();
@@ -257,19 +274,23 @@ class PengingatMoLogService
             'total_today' => (clone $today)->count(),
             'tepat_today' => (clone $today)->whereRaw('ABS(patuh_menit) <= 15')->count(),
             'telat_today' => (clone $today)->whereRaw('ABS(patuh_menit) > 15')->count(),
-            'total_all'   => (clone $base)->count(),
+            'total_all' => (clone $base)->count(),
         ];
     }
 
     /**
      * Authorization: user boleh akses jadwal ini?
      */
-    protected static function authorizeJadwalAccess(JadwalMinumObat $jadwal, \App\Models\User $user): void
+    protected static function authorizeJadwalAccess(JadwalMinumObat $jadwal, User $user): void
     {
-        if ($user->isSuperadmin() || $user->isAdmin()) return;
+        if ($user->isSuperadmin() || $user->isAdmin()) {
+            return;
+        }
 
         $mapping = $jadwal->pasienPmo;
-        if (!$mapping) throw new \Exception('Mapping pasien-PMO tidak ditemukan.');
+        if (! $mapping) {
+            throw new \Exception('Mapping pasien-PMO tidak ditemukan.');
+        }
 
         if ($user->isPmo() && $mapping->pmo_user_id !== $user->id) {
             throw new \Exception('Anda tidak punya akses ke jadwal ini.');
@@ -283,12 +304,16 @@ class PengingatMoLogService
     /**
      * Authorization: user boleh akses log ini?
      */
-    protected static function authorizeLogAccess(PengingatMoLog $log, \App\Models\User $user): void
+    protected static function authorizeLogAccess(PengingatMoLog $log, User $user): void
     {
-        if ($user->isSuperadmin() || $user->isAdmin()) return;
+        if ($user->isSuperadmin() || $user->isAdmin()) {
+            return;
+        }
 
         $mapping = $log->jadwalMo?->pasienPmo;
-        if (!$mapping) throw new \Exception('Mapping tidak ditemukan.');
+        if (! $mapping) {
+            throw new \Exception('Mapping tidak ditemukan.');
+        }
 
         if ($user->isPmo() && $mapping->pmo_user_id !== $user->id) {
             throw new \Exception('Anda tidak punya akses ke log ini.');

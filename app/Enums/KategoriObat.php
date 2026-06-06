@@ -4,7 +4,7 @@ namespace App\Enums;
 
 enum KategoriObat: string
 {
-    case ORAL    = 'oral';
+    case ORAL = 'oral';
     case INJEKSI = 'injeksi';
     case INSULIN = 'insulin';
     case LAINNYA = 'lainnya';
@@ -12,7 +12,7 @@ enum KategoriObat: string
     public function label(): string
     {
         return match ($this) {
-            self::ORAL    => 'Oral (Tablet/Kapsul)',
+            self::ORAL => 'Oral (Tablet/Kapsul)',
             self::INJEKSI => 'Injeksi',
             self::INSULIN => 'Insulin',
             self::LAINNYA => 'Lainnya',
@@ -25,6 +25,7 @@ enum KategoriObat: string
         foreach (self::cases() as $case) {
             $opts[$case->value] = $case->label();
         }
+
         return $opts;
     }
 }

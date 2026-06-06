@@ -23,7 +23,7 @@ class JadwalCgdRepository
 
         $query->search($search);
 
-        if (!empty($status)) {
+        if (! empty($status)) {
             $query->where('status', $status);
         }
 
@@ -69,7 +69,10 @@ class JadwalCgdRepository
     {
         return DB::transaction(function () use ($id, $data) {
             $jadwal = JadwalCgd::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
+
             return $jadwal->update($data);
         });
     }
@@ -81,10 +84,12 @@ class JadwalCgdRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $jadwal = JadwalCgd::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
 
             return $jadwal->update([
-                'status'     => 'nonaktif',
+                'status' => 'nonaktif',
                 'updated_by' => $userId,
             ]);
         });
@@ -97,10 +102,12 @@ class JadwalCgdRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $jadwal = JadwalCgd::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
 
             return $jadwal->update([
-                'status'     => 'aktif',
+                'status' => 'aktif',
                 'updated_by' => $userId,
             ]);
         });
@@ -113,10 +120,12 @@ class JadwalCgdRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $jadwal = JadwalCgd::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
 
             return $jadwal->update([
-                'status'     => 'selesai',
+                'status' => 'selesai',
                 'updated_by' => $userId,
             ]);
         });
@@ -129,7 +138,9 @@ class JadwalCgdRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $jadwal = JadwalCgd::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
 
             $jadwal->deleted_by = $userId;
             $jadwal->save();

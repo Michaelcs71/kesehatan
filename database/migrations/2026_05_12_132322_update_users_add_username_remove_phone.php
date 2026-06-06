@@ -24,7 +24,7 @@ return new class extends Migration
                 $baseUsername = $username;
                 $counter = 1;
                 while (DB::table('users')->where('username', $username)->where('id', '!=', $user->id)->exists()) {
-                    $username = $baseUsername . $counter;
+                    $username = $baseUsername.$counter;
                     $counter++;
                 }
                 DB::table('users')->where('id', $user->id)->update(['username' => $username]);

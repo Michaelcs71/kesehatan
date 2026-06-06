@@ -12,18 +12,21 @@ use Illuminate\Support\Facades\Storage;
 
 class PengingatCgdLog extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'pengingat_cgd_logs';
 
     // Batas normal per gender (untuk patuh_selisih)
     const BATAS_NORMAL_PEREMPUAN = 140;
+
     const BATAS_NORMAL_LAKI_LAKI = 200;
 
     // Threshold kategori (FIXED, tidak gender-based)
-    const THRESHOLD_NORMAL           = 140;
+    const THRESHOLD_NORMAL = 140;
+
     const THRESHOLD_TIDAK_TERKONTROL = 199;
-    const THRESHOLD_TINGGI           = 299;
+
+    const THRESHOLD_TINGGI = 299;
 
     protected $fillable = [
         'id_cgd',
@@ -46,8 +49,8 @@ class PengingatCgdLog extends Model
     protected function casts(): array
     {
         return [
-            'tgl_cgd'       => 'date',
-            'hasil_mgdl'    => 'integer',
+            'tgl_cgd' => 'date',
+            'hasil_mgdl' => 'integer',
             'patuh_selisih' => 'integer',
         ];
     }
@@ -118,7 +121,10 @@ class PengingatCgdLog extends Model
 
     public function scopeSearch(Builder $q, ?string $term): Builder
     {
-        if (blank($term)) return $q;
+        if (blank($term)) {
+            return $q;
+        }
+
         return $q->where(function ($qq) use ($term) {
             $qq->where('nama_pasien', 'like', "%{$term}%")
                 ->orWhere('tempat_cgd', 'like', "%{$term}%");
@@ -129,59 +135,62 @@ class PengingatCgdLog extends Model
 
     public function getJamCgdFormatAttribute(): string
     {
-        if (!$this->jam_cgd) return '-';
+        if (! $this->jam_cgd) {
+            return '-';
+        }
+
         return substr($this->jam_cgd, 0, 5);
     }
 
     public function getKategoriLabelAttribute(): string
     {
         return match ($this->kategori_hasil) {
-            'normal'           => 'Normal Terkontrol',
+            'normal' => 'Normal Terkontrol',
             'tidak_terkontrol' => 'Tidak Terkontrol',
-            'tinggi'           => 'Tinggi',
-            'berbahaya'        => 'Berbahaya',
-            default            => ucfirst(str_replace('_', ' ', $this->kategori_hasil)),
+            'tinggi' => 'Tinggi',
+            'berbahaya' => 'Berbahaya',
+            default => ucfirst(str_replace('_', ' ', $this->kategori_hasil)),
         };
     }
 
     public function getKategoriPesanAttribute(): string
     {
         return match ($this->kategori_hasil) {
-            'normal'           => 'Gula darah normal. Tetap patuh minum obat ya!',
+            'normal' => 'Gula darah normal. Tetap patuh minum obat ya!',
             'tidak_terkontrol' => 'Kurangi asupan gula. Patuh minum obat rutin ya!',
-            'tinggi'           => 'Segera ke rumah sakit / puskesmas terdekat.',
-            'berbahaya'        => 'Anda memerlukan bantuan dokter SEKARANG juga!',
-            default            => '',
+            'tinggi' => 'Segera ke rumah sakit / puskesmas terdekat.',
+            'berbahaya' => 'Anda memerlukan bantuan dokter SEKARANG juga!',
+            default => '',
         };
     }
 
     public function getKategoriColorAttribute(): string
     {
         return match ($this->kategori_hasil) {
-            'normal'           => 'success',
+            'normal' => 'success',
             'tidak_terkontrol' => 'warning',
-            'tinggi'           => 'danger',
-            'berbahaya'        => 'dark',
-            default            => 'secondary',
+            'tinggi' => 'danger',
+            'berbahaya' => 'dark',
+            default => 'secondary',
         };
     }
 
     public function getKategoriIconAttribute(): string
     {
         return match ($this->kategori_hasil) {
-            'normal'           => 'ri-check-double-line',
+            'normal' => 'ri-check-double-line',
             'tidak_terkontrol' => 'ri-alert-line',
-            'tinggi'           => 'ri-alarm-warning-line',
-            'berbahaya'        => 'ri-error-warning-fill',
-            default            => 'ri-question-line',
+            'tinggi' => 'ri-alarm-warning-line',
+            'berbahaya' => 'ri-error-warning-fill',
+            default => 'ri-question-line',
         };
     }
 
     public function getJenisKelaminLabelAttribute(): string
     {
         return match ($this->jenis_kelamin) {
-            'L'     => 'Laki-laki',
-            'P'     => 'Perempuan',
+            'L' => 'Laki-laki',
+            'P' => 'Perempuan',
             default => '-',
         };
     }
@@ -189,11 +198,12 @@ class PengingatCgdLog extends Model
     public function getPatuhLabelAttribute(): string
     {
         if ($this->patuh_selisih > 0) {
-            return '+' . $this->patuh_selisih . ' mg/dL di atas batas normal';
+            return '+'.$this->patuh_selisih.' mg/dL di atas batas normal';
         }
         if ($this->patuh_selisih < 0) {
-            return abs($this->patuh_selisih) . ' mg/dL di bawah batas normal';
+            return abs($this->patuh_selisih).' mg/dL di bawah batas normal';
         }
+
         return 'Tepat di batas normal';
     }
 
@@ -205,9 +215,9 @@ class PengingatCgdLog extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'aktif'    => 'Aktif',
+            'aktif' => 'Aktif',
             'nonaktif' => 'Nonaktif',
-            default    => ucfirst($this->status),
+            default => ucfirst($this->status),
         };
     }
 
@@ -220,17 +230,24 @@ class PengingatCgdLog extends Model
 
     public static function determineKategori(int $hasil): string
     {
-        if ($hasil <= self::THRESHOLD_NORMAL) return 'normal';
-        if ($hasil <= self::THRESHOLD_TIDAK_TERKONTROL) return 'tidak_terkontrol';
-        if ($hasil <= self::THRESHOLD_TINGGI) return 'tinggi';
+        if ($hasil <= self::THRESHOLD_NORMAL) {
+            return 'normal';
+        }
+        if ($hasil <= self::THRESHOLD_TIDAK_TERKONTROL) {
+            return 'tidak_terkontrol';
+        }
+        if ($hasil <= self::THRESHOLD_TINGGI) {
+            return 'tinggi';
+        }
+
         return 'berbahaya';
     }
 
     public static function getBatasNormalPerGender(?string $jenisKelamin): int
     {
         return match ($jenisKelamin) {
-            'L'     => self::BATAS_NORMAL_LAKI_LAKI,
-            'P'     => self::BATAS_NORMAL_PEREMPUAN,
+            'L' => self::BATAS_NORMAL_LAKI_LAKI,
+            'P' => self::BATAS_NORMAL_PEREMPUAN,
             default => self::BATAS_NORMAL_PEREMPUAN,
         };
     }

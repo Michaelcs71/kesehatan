@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PasienPmo\{IndexRequest, StoreRequest, UpdateRequest};
+use App\Http\Requests\PasienPmo\IndexRequest;
+use App\Http\Requests\PasienPmo\StoreRequest;
+use App\Http\Requests\PasienPmo\UpdateRequest;
 use App\Services\PasienPmoService;
 use Illuminate\Http\JsonResponse;
 
@@ -20,28 +22,30 @@ class PasienPmoController extends Controller
 
     public function index()
     {
-        return view($this->getViewPath() . '.index');
+        return view($this->getViewPath().'.index');
     }
 
     public function getData(IndexRequest $request): JsonResponse
     {
         $data = PasienPmoService::getAllMappings($request->validated());
+
         return response()->json($data);
     }
 
     public function create()
     {
-        return view($this->getViewPath() . '.form');
+        return view($this->getViewPath().'.form');
     }
 
     public function store(StoreRequest $request): JsonResponse
     {
         try {
             $result = PasienPmoService::bulkCreate($request->validated());
+
             return response()->json([
                 'success' => true,
                 'message' => "Berhasil membuat {$result['count']} mapping Pasien PMO.",
-                'data'    => $result,
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -55,19 +59,19 @@ class PasienPmoController extends Controller
     {
         $mapping = PasienPmoService::findMappingById($id);
 
-        if (!$mapping) {
+        if (! $mapping) {
             return redirect()->route('pasien-pmo.index')
                 ->with('error', 'Mapping tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.show', compact('id'));
+        return view($this->getViewPath().'.show', compact('id'));
     }
 
     public function showData(string $id): JsonResponse
     {
         $mapping = PasienPmoService::findMappingById($id);
 
-        if (!$mapping) {
+        if (! $mapping) {
             return response()->json(['message' => 'Data tidak ditemukan'], 404);
         }
 
@@ -78,18 +82,19 @@ class PasienPmoController extends Controller
     {
         $mapping = PasienPmoService::findMappingById($id);
 
-        if (!$mapping) {
+        if (! $mapping) {
             return redirect()->route('pasien-pmo.index')
                 ->with('error', 'Mapping tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.form', compact('id'));
+        return view($this->getViewPath().'.form', compact('id'));
     }
 
     public function update(UpdateRequest $request, string $id): JsonResponse
     {
         try {
             PasienPmoService::updateMapping($id, $request->validated());
+
             return response()->json([
                 'success' => true,
                 'message' => 'Mapping berhasil diupdate.',
@@ -106,6 +111,7 @@ class PasienPmoController extends Controller
     {
         try {
             PasienPmoService::deleteMapping($id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Mapping berhasil dihapus.',
@@ -122,6 +128,7 @@ class PasienPmoController extends Controller
     {
         try {
             PasienPmoService::deactivate($id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Mapping berhasil dinonaktifkan.',
@@ -138,6 +145,7 @@ class PasienPmoController extends Controller
     {
         try {
             PasienPmoService::activate($id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Mapping berhasil diaktifkan.',
@@ -162,6 +170,7 @@ class PasienPmoController extends Controller
     public function pasienOptions(): JsonResponse
     {
         $excludeMappingId = request('exclude_mapping_id');
+
         return response()->json([
             'data' => PasienPmoService::getPasienOptions($excludeMappingId),
         ]);

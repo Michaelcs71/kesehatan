@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UserBiodata extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'user_biodatas';
 
@@ -49,8 +49,8 @@ class UserBiodata extends Model
     {
         $parts = array_filter([
             $this->alamat_jalan,
-            $this->alamat_rt ? 'RT ' . $this->alamat_rt : null,
-            $this->alamat_rw ? 'RW ' . $this->alamat_rw : null,
+            $this->alamat_rt ? 'RT '.$this->alamat_rt : null,
+            $this->alamat_rw ? 'RW '.$this->alamat_rw : null,
             $this->alamat_dusun,
             $this->alamat_desa,
             $this->alamat_kecamatan,

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\JadwalMinumObat;
 use App\Models\MasterObat;
+use App\Models\User;
 use App\Repos\JadwalMinumObatRepository;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,11 +15,11 @@ class JadwalMinumObatService
      */
     public static function getAllJadwal(array $params): array
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         // Setup filter berdasarkan role
-        $forPmoUserId    = null;
+        $forPmoUserId = null;
         $forPasienUserId = null;
 
         if ($loggedInUser->isPmo()) {
@@ -42,7 +43,7 @@ class JadwalMinumObatService
 
         return [
             'TotalRows' => $data->total(),
-            'Rows'      => $data->items(),
+            'Rows' => $data->items(),
         ];
     }
 
@@ -51,6 +52,7 @@ class JadwalMinumObatService
         if (empty($id) || in_array($id, ['create', 'edit'])) {
             return null;
         }
+
         return JadwalMinumObatRepository::findJadwalById($id);
     }
 
@@ -63,10 +65,10 @@ class JadwalMinumObatService
      */
     public static function getPasienPmoOptions(): array
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
-        $pmoUserId    = null;
+        $pmoUserId = null;
         $pasienUserId = null;
 
         if ($loggedInUser->isPmo()) {
@@ -88,7 +90,7 @@ class JadwalMinumObatService
      */
     public static function bulkCreate(array $data): array
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         $auditData = ['created_by' => $loggedInUser->id];
@@ -100,18 +102,18 @@ class JadwalMinumObatService
         );
 
         return [
-            'count'   => count($created),
+            'count' => count($created),
             'jadwals' => $created,
         ];
     }
 
     public static function updateJadwal(string $id, array $data): bool
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         $jadwal = JadwalMinumObatRepository::findJadwalById($id);
-        if (!$jadwal) {
+        if (! $jadwal) {
             throw new \Exception('Jadwal tidak ditemukan.');
         }
 
@@ -125,11 +127,13 @@ class JadwalMinumObatService
 
     public static function deactivate(string $id): bool
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         $jadwal = JadwalMinumObatRepository::findJadwalById($id);
-        if (!$jadwal) throw new \Exception('Jadwal tidak ditemukan.');
+        if (! $jadwal) {
+            throw new \Exception('Jadwal tidak ditemukan.');
+        }
 
         self::authorizeAccess($jadwal, $loggedInUser);
 
@@ -138,11 +142,13 @@ class JadwalMinumObatService
 
     public static function activate(string $id): bool
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         $jadwal = JadwalMinumObatRepository::findJadwalById($id);
-        if (!$jadwal) throw new \Exception('Jadwal tidak ditemukan.');
+        if (! $jadwal) {
+            throw new \Exception('Jadwal tidak ditemukan.');
+        }
 
         self::authorizeAccess($jadwal, $loggedInUser);
 
@@ -151,11 +157,13 @@ class JadwalMinumObatService
 
     public static function markSelesai(string $id): bool
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         $jadwal = JadwalMinumObatRepository::findJadwalById($id);
-        if (!$jadwal) throw new \Exception('Jadwal tidak ditemukan.');
+        if (! $jadwal) {
+            throw new \Exception('Jadwal tidak ditemukan.');
+        }
 
         self::authorizeAccess($jadwal, $loggedInUser);
 
@@ -164,11 +172,13 @@ class JadwalMinumObatService
 
     public static function deleteJadwal(string $id): bool
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         $jadwal = JadwalMinumObatRepository::findJadwalById($id);
-        if (!$jadwal) throw new \Exception('Jadwal tidak ditemukan.');
+        if (! $jadwal) {
+            throw new \Exception('Jadwal tidak ditemukan.');
+        }
 
         self::authorizeAccess($jadwal, $loggedInUser);
 
@@ -180,7 +190,7 @@ class JadwalMinumObatService
      */
     public static function quickCreateObat(array $data): MasterObat
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         return JadwalMinumObatRepository::quickCreateObat($data, $loggedInUser->id);
@@ -188,37 +198,37 @@ class JadwalMinumObatService
 
     public static function getStats(): array
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         $base = JadwalMinumObat::query();
 
         // Apply role filter
         if ($loggedInUser->isPmo()) {
-            $base->whereHas('pasienPmo', fn($q) => $q->where('pmo_user_id', $loggedInUser->id));
+            $base->whereHas('pasienPmo', fn ($q) => $q->where('pmo_user_id', $loggedInUser->id));
         } elseif ($loggedInUser->isPasien()) {
-            $base->whereHas('pasienPmo', fn($q) => $q->where('id_user', $loggedInUser->id));
+            $base->whereHas('pasienPmo', fn ($q) => $q->where('id_user', $loggedInUser->id));
         }
 
         return [
-            'total'    => (clone $base)->count(),
-            'aktif'    => (clone $base)->where('status', 'aktif')->count(),
+            'total' => (clone $base)->count(),
+            'aktif' => (clone $base)->where('status', 'aktif')->count(),
             'nonaktif' => (clone $base)->where('status', 'nonaktif')->count(),
-            'selesai'  => (clone $base)->where('status', 'selesai')->count(),
+            'selesai' => (clone $base)->where('status', 'selesai')->count(),
         ];
     }
 
     /**
      * Authorization check: user boleh akses jadwal ini?
      */
-    protected static function authorizeAccess(JadwalMinumObat $jadwal, \App\Models\User $user): void
+    protected static function authorizeAccess(JadwalMinumObat $jadwal, User $user): void
     {
         if ($user->isSuperadmin() || $user->isAdmin()) {
             return; // bebas
         }
 
         $mapping = $jadwal->pasienPmo;
-        if (!$mapping) {
+        if (! $mapping) {
             throw new \Exception('Mapping tidak ditemukan.');
         }
 

@@ -1,19 +1,23 @@
 <?php
 
-use App\Http\Controllers\MasterKategoriObatController;
-use App\Http\Controllers\MasterObatController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\MasterSatuanObatController;
-use App\Http\Controllers\PasienPmoController;
-use App\Http\Controllers\JadwalMinumObatController;
 use App\Http\Controllers\JadwalCgdController;
-use App\Http\Controllers\PengingatMoLogController;
-use App\Http\Controllers\PengingatCgdLogController;
-use App\Http\Controllers\PublicContentController;
-use App\Http\Controllers\KontenPengumumanController;
+use App\Http\Controllers\JadwalMinumObatController;
+use App\Http\Controllers\KonfirmasiPengingatController;
 use App\Http\Controllers\KontenEdukasiController;
 use App\Http\Controllers\KontenGaleriController;
+use App\Http\Controllers\KontenPengumumanController;
+use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\MasterKategoriObatController;
+use App\Http\Controllers\MasterObatController;
+use App\Http\Controllers\MasterSatuanObatController;
+use App\Http\Controllers\PasienPmoController;
+use App\Http\Controllers\PengingatCgdLogController;
+use App\Http\Controllers\PengingatMoLogController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicContentController;
+use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserImportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -203,22 +207,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('master-user/import')->name('master-user.import.')->group(function () {
 
         // Download template (siapa saja yang punya akses master-user.create)
-        Route::get('/template', [\App\Http\Controllers\UserImportController::class, 'downloadTemplate'])
+        Route::get('/template', [UserImportController::class, 'downloadTemplate'])
             ->name('template')
             ->middleware('permission:master-user.create');
 
         // Preview upload (parse Excel, tidak save)
-        Route::post('/preview', [\App\Http\Controllers\UserImportController::class, 'preview'])
+        Route::post('/preview', [UserImportController::class, 'preview'])
             ->name('preview')
             ->middleware('permission:master-user.create');
 
         // Re-validate satu row (saat edit di modal)
-        Route::post('/validate-row', [\App\Http\Controllers\UserImportController::class, 'validateRow'])
+        Route::post('/validate-row', [UserImportController::class, 'validateRow'])
             ->name('validate-row')
             ->middleware('permission:master-user.create');
 
         // Konfirmasi import (insert ke DB)
-        Route::post('/confirm', [\App\Http\Controllers\UserImportController::class, 'confirm'])
+        Route::post('/confirm', [UserImportController::class, 'confirm'])
             ->name('confirm')
             ->middleware('permission:master-user.create');
     });
@@ -233,7 +237,6 @@ Route::middleware(['auth', 'verified', 'role:pasien'])
     ->prefix('pasien')->name('pasien.')->group(function () {
 
         Route::view('/dashboard', 'dashboard.pasien')->name('dashboard');
-
 
         Route::view('/jadwal-cgd', 'placeholder')->name('jadwal.cgd')
             ->defaults('meta', ['title' => 'Jadwal Cek Gula Darah']);
@@ -324,8 +327,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Options endpoints (untuk dropdown di form)
         Route::middleware('permission:jadwal-mo.create|jadwal-mo.edit')->group(function () {
             Route::get('/options/pasien-pmo', [JadwalMinumObatController::class, 'pasienPmoOptions'])->name('options.pasien-pmo');
-            Route::get('/options/obat',       [JadwalMinumObatController::class, 'obatOptions'])->name('options.obat');
-            Route::get('/options/satuan',     [JadwalMinumObatController::class, 'satuanOptions'])->name('options.satuan');
+            Route::get('/options/obat', [JadwalMinumObatController::class, 'obatOptions'])->name('options.obat');
+            Route::get('/options/satuan', [JadwalMinumObatController::class, 'satuanOptions'])->name('options.satuan');
 
             // Quick-create obat (untuk modal di form jadwal)
             Route::post('/quick-create-obat', [JadwalMinumObatController::class, 'quickCreateObat'])->name('quick-create-obat');
@@ -333,19 +336,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // INDEX (list)
         Route::middleware('permission:jadwal-mo.index')->group(function () {
-            Route::get('/',     [JadwalMinumObatController::class, 'index'])->name('index');
+            Route::get('/', [JadwalMinumObatController::class, 'index'])->name('index');
             Route::get('/data', [JadwalMinumObatController::class, 'getData'])->name('data');
         });
 
         // CREATE
         Route::middleware('permission:jadwal-mo.create')->group(function () {
             Route::get('/create', [JadwalMinumObatController::class, 'create'])->name('create');
-            Route::post('/',      [JadwalMinumObatController::class, 'store'])->name('store');
+            Route::post('/', [JadwalMinumObatController::class, 'store'])->name('store');
         });
 
         // SHOW
         Route::middleware('permission:jadwal-mo.show')->group(function () {
-            Route::get('/{id}',      [JadwalMinumObatController::class, 'show'])->name('show')
+            Route::get('/{id}', [JadwalMinumObatController::class, 'show'])->name('show')
                 ->where('id', '[0-9a-f\-]+');
             Route::get('/{id}/data', [JadwalMinumObatController::class, 'showData'])->name('show-data')
                 ->where('id', '[0-9a-f\-]+');
@@ -355,14 +358,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:jadwal-mo.edit')->group(function () {
             Route::get('/{id}/edit', [JadwalMinumObatController::class, 'edit'])->name('edit')
                 ->where('id', '[0-9a-f\-]+');
-            Route::put('/{id}',      [JadwalMinumObatController::class, 'update'])->name('update')
+            Route::put('/{id}', [JadwalMinumObatController::class, 'update'])->name('update')
                 ->where('id', '[0-9a-f\-]+');
-            Route::patch('/{id}',    [JadwalMinumObatController::class, 'update'])
+            Route::patch('/{id}', [JadwalMinumObatController::class, 'update'])
                 ->where('id', '[0-9a-f\-]+');
 
-            Route::post('/{id}/deactivate',   [JadwalMinumObatController::class, 'deactivate'])
+            Route::post('/{id}/deactivate', [JadwalMinumObatController::class, 'deactivate'])
                 ->name('deactivate')->where('id', '[0-9a-f\-]+');
-            Route::post('/{id}/activate',     [JadwalMinumObatController::class, 'activate'])
+            Route::post('/{id}/activate', [JadwalMinumObatController::class, 'activate'])
                 ->name('activate')->where('id', '[0-9a-f\-]+');
             Route::post('/{id}/mark-selesai', [JadwalMinumObatController::class, 'markSelesai'])
                 ->name('mark-selesai')->where('id', '[0-9a-f\-]+');
@@ -389,19 +392,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // INDEX (list) - semua role bisa lihat
         Route::middleware('permission:jadwal-cgd.index')->group(function () {
-            Route::get('/',     [JadwalCgdController::class, 'index'])->name('index');
+            Route::get('/', [JadwalCgdController::class, 'index'])->name('index');
             Route::get('/data', [JadwalCgdController::class, 'getData'])->name('data');
         });
 
         // CREATE - admin only
         Route::middleware('permission:jadwal-cgd.create')->group(function () {
             Route::get('/create', [JadwalCgdController::class, 'create'])->name('create');
-            Route::post('/',      [JadwalCgdController::class, 'store'])->name('store');
+            Route::post('/', [JadwalCgdController::class, 'store'])->name('store');
         });
 
         // SHOW - semua role bisa lihat detail
         Route::middleware('permission:jadwal-cgd.show')->group(function () {
-            Route::get('/{id}',      [JadwalCgdController::class, 'show'])->name('show')
+            Route::get('/{id}', [JadwalCgdController::class, 'show'])->name('show')
                 ->where('id', '[0-9a-f\-]+');
             Route::get('/{id}/data', [JadwalCgdController::class, 'showData'])->name('show-data')
                 ->where('id', '[0-9a-f\-]+');
@@ -411,14 +414,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:jadwal-cgd.edit')->group(function () {
             Route::get('/{id}/edit', [JadwalCgdController::class, 'edit'])->name('edit')
                 ->where('id', '[0-9a-f\-]+');
-            Route::put('/{id}',      [JadwalCgdController::class, 'update'])->name('update')
+            Route::put('/{id}', [JadwalCgdController::class, 'update'])->name('update')
                 ->where('id', '[0-9a-f\-]+');
-            Route::patch('/{id}',    [JadwalCgdController::class, 'update'])
+            Route::patch('/{id}', [JadwalCgdController::class, 'update'])
                 ->where('id', '[0-9a-f\-]+');
 
-            Route::post('/{id}/deactivate',   [JadwalCgdController::class, 'deactivate'])
+            Route::post('/{id}/deactivate', [JadwalCgdController::class, 'deactivate'])
                 ->name('deactivate')->where('id', '[0-9a-f\-]+');
-            Route::post('/{id}/activate',     [JadwalCgdController::class, 'activate'])
+            Route::post('/{id}/activate', [JadwalCgdController::class, 'activate'])
                 ->name('activate')->where('id', '[0-9a-f\-]+');
             Route::post('/{id}/mark-selesai', [JadwalCgdController::class, 'markSelesai'])
                 ->name('mark-selesai')->where('id', '[0-9a-f\-]+');
@@ -450,19 +453,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // INDEX
         Route::middleware('permission:pengingat-mo.index')->group(function () {
-            Route::get('/',     [PengingatMoLogController::class, 'index'])->name('index');
+            Route::get('/', [PengingatMoLogController::class, 'index'])->name('index');
             Route::get('/data', [PengingatMoLogController::class, 'getData'])->name('data');
         });
 
         // CREATE
         Route::middleware('permission:pengingat-mo.create')->group(function () {
             Route::get('/create', [PengingatMoLogController::class, 'create'])->name('create');
-            Route::post('/',      [PengingatMoLogController::class, 'store'])->name('store');
+            Route::post('/', [PengingatMoLogController::class, 'store'])->name('store');
         });
 
         // SHOW
         Route::middleware('permission:pengingat-mo.show')->group(function () {
-            Route::get('/{id}',      [PengingatMoLogController::class, 'show'])->name('show')
+            Route::get('/{id}', [PengingatMoLogController::class, 'show'])->name('show')
                 ->where('id', '[0-9a-f\-]+');
             Route::get('/{id}/data', [PengingatMoLogController::class, 'showData'])->name('show-data')
                 ->where('id', '[0-9a-f\-]+');
@@ -489,7 +492,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | PENGINGAT CEK GULA DARAH (LOG)
@@ -508,19 +510,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // INDEX
         Route::middleware('permission:pengingat-cgd.index')->group(function () {
-            Route::get('/',     [PengingatCgdLogController::class, 'index'])->name('index');
+            Route::get('/', [PengingatCgdLogController::class, 'index'])->name('index');
             Route::get('/data', [PengingatCgdLogController::class, 'getData'])->name('data');
         });
 
         // CREATE
         Route::middleware('permission:pengingat-cgd.create')->group(function () {
             Route::get('/create', [PengingatCgdLogController::class, 'create'])->name('create');
-            Route::post('/',      [PengingatCgdLogController::class, 'store'])->name('store');
+            Route::post('/', [PengingatCgdLogController::class, 'store'])->name('store');
         });
 
         // SHOW
         Route::middleware('permission:pengingat-cgd.show')->group(function () {
-            Route::get('/{id}',      [PengingatCgdLogController::class, 'show'])->name('show')
+            Route::get('/{id}', [PengingatCgdLogController::class, 'show'])->name('show')
                 ->where('id', '[0-9a-f\-]+');
             Route::get('/{id}/data', [PengingatCgdLogController::class, 'showData'])->name('show-data')
                 ->where('id', '[0-9a-f\-]+');
@@ -528,14 +530,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // EDIT + UPDATE + STATUS
         Route::middleware('permission:pengingat-cgd.edit')->group(function () {
-            Route::get('/{id}/edit',     [PengingatCgdLogController::class, 'edit'])->name('edit')
+            Route::get('/{id}/edit', [PengingatCgdLogController::class, 'edit'])->name('edit')
                 ->where('id', '[0-9a-f\-]+');
-            Route::post('/{id}/update',  [PengingatCgdLogController::class, 'update'])->name('update')
+            Route::post('/{id}/update', [PengingatCgdLogController::class, 'update'])->name('update')
                 ->where('id', '[0-9a-f\-]+');
 
             Route::post('/{id}/deactivate', [PengingatCgdLogController::class, 'deactivate'])
                 ->name('deactivate')->where('id', '[0-9a-f\-]+');
-            Route::post('/{id}/activate',   [PengingatCgdLogController::class, 'activate'])
+            Route::post('/{id}/activate', [PengingatCgdLogController::class, 'activate'])
                 ->name('activate')->where('id', '[0-9a-f\-]+');
         });
 
@@ -575,7 +577,6 @@ Route::middleware(['auth', 'verified', 'role:admin,superadmin'])
         Route::view('/master/pmo', 'placeholder')->name('master.pmo')
             ->defaults('meta', ['title' => 'Master PMO']);
 
-
         Route::view('/transaksi/jadwal-cgd', 'placeholder')->name('transaksi.jadwal_cgd')
             ->defaults('meta', ['title' => 'Jadwal Cek Gula Darah']);
         Route::view('/transaksi/pillbox-mo', 'placeholder')->name('transaksi.pillbox_mo')
@@ -583,7 +584,7 @@ Route::middleware(['auth', 'verified', 'role:admin,superadmin'])
         Route::view('/transaksi/alat-cgd', 'placeholder')->name('transaksi.alat_cgd')
             ->defaults('meta', ['title' => 'Foto Alat CGD']);
 
-        Route::get('/laporan/kepatuhan', [\App\Http\Controllers\LaporanController::class, 'kepatuhan'])
+        Route::get('/laporan/kepatuhan', [LaporanController::class, 'kepatuhan'])
             ->name('laporan.kepatuhan')
             ->middleware('permission:laporan-kepatuhan.index');
     });
@@ -724,8 +725,8 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push.subscribe');
-    Route::delete('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 });
 
 /*
@@ -734,10 +735,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/pengingat/{kejadian}/konfirmasi', [\App\Http\Controllers\KonfirmasiPengingatController::class, 'show'])
+    Route::get('/pengingat/{kejadian}/konfirmasi', [KonfirmasiPengingatController::class, 'show'])
         ->name('pengingat.konfirmasi.show')->where('kejadian', '[0-9a-f\-]+');
-    Route::post('/pengingat/{kejadian}/konfirmasi', [\App\Http\Controllers\KonfirmasiPengingatController::class, 'store'])
+    Route::post('/pengingat/{kejadian}/konfirmasi', [KonfirmasiPengingatController::class, 'store'])
         ->name('pengingat.konfirmasi.store')->where('kejadian', '[0-9a-f\-]+');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

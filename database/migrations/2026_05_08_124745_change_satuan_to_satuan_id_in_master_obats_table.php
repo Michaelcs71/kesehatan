@@ -21,7 +21,7 @@ return new class extends Migration
         $satuanMap = DB::table('master_satuan_obats')
             ->whereNull('deleted_at')
             ->get()
-            ->mapWithKeys(fn($s) => [strtolower($s->nama) => $s->id])
+            ->mapWithKeys(fn ($s) => [strtolower($s->nama) => $s->id])
             ->toArray();
 
         // Default fallback ke "Tablet" kalau tidak ketemu
@@ -56,7 +56,7 @@ return new class extends Migration
         $satuanMap = DB::table('master_satuan_obats')
             ->whereNull('deleted_at')
             ->get()
-            ->mapWithKeys(fn($s) => [$s->id => strtolower($s->nama)])
+            ->mapWithKeys(fn ($s) => [$s->id => strtolower($s->nama)])
             ->toArray();
 
         $obats = DB::table('master_obats')->whereNull('deleted_at')->whereNotNull('satuan_id')->get();

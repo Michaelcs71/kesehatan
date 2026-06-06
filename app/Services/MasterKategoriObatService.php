@@ -32,7 +32,7 @@ class MasterKategoriObatService
 
         return [
             'TotalRows' => $data->total(),
-            'Rows'      => $data->items(),
+            'Rows' => $data->items(),
         ];
     }
 
@@ -41,18 +41,21 @@ class MasterKategoriObatService
         if (empty($id) || in_array($id, ['create', 'edit'])) {
             return null;
         }
+
         return MasterKategoriObatRepository::findMasterKategoriObatById($id);
     }
 
     public static function createMasterKategoriObat(array $data): MasterKategoriObat
     {
         $data['created_by'] = Auth::id();
+
         return MasterKategoriObatRepository::createMasterKategoriObat($data);
     }
 
     public static function updateMasterKategoriObat(string $id, array $data): bool
     {
         $data['updated_by'] = Auth::id();
+
         return MasterKategoriObatRepository::updateMasterKategoriObat($id, $data);
     }
 
@@ -60,7 +63,7 @@ class MasterKategoriObatService
     {
         $kategori = MasterKategoriObatRepository::findMasterKategoriObatById($id);
 
-        if (!$kategori) {
+        if (! $kategori) {
             return false;
         }
 
@@ -86,8 +89,8 @@ class MasterKategoriObatService
     public static function getStats(): array
     {
         return [
-            'total'    => MasterKategoriObat::count(),
-            'active'   => MasterKategoriObat::where('is_active', true)->count(),
+            'total' => MasterKategoriObat::count(),
+            'active' => MasterKategoriObat::where('is_active', true)->count(),
             'inactive' => MasterKategoriObat::where('is_active', false)->count(),
         ];
     }

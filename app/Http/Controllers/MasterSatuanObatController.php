@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\{HasCrudViews, HasCrudOperations};
-use App\Http\Requests\MasterSatuanObat\{IndexRequest, StoreUpdateRequest};
+use App\Http\Controllers\Concerns\HasCrudOperations;
+use App\Http\Controllers\Concerns\HasCrudViews;
+use App\Http\Requests\MasterSatuanObat\IndexRequest;
+use App\Http\Requests\MasterSatuanObat\StoreUpdateRequest;
 use App\Services\MasterSatuanObatService;
 use Illuminate\Http\JsonResponse;
 
 class MasterSatuanObatController extends BaseController
 {
-    use HasCrudViews, HasCrudOperations;
+    use HasCrudOperations, HasCrudViews;
 
     protected function getViewPath(): string
     {
@@ -55,7 +57,7 @@ class MasterSatuanObatController extends BaseController
     {
         $item = MasterSatuanObatService::findMasterSatuanObatById($id);
 
-        if (!$item) {
+        if (! $item) {
             return $this->redirectToIndexWithError();
         }
 
@@ -66,7 +68,7 @@ class MasterSatuanObatController extends BaseController
     {
         $item = MasterSatuanObatService::findMasterSatuanObatById($id);
 
-        if (!$item) {
+        if (! $item) {
             return response()->json(['message' => 'Data tidak ditemukan'], 404);
         }
 

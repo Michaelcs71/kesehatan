@@ -4,8 +4,6 @@ namespace App\Repos;
 
 use App\Models\PasienPmo;
 use App\Models\User;
-use App\Models\UserBiodata;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -36,15 +34,15 @@ class PasienPmoRepository
             $query->where('is_active', $isActive === '1' || $isActive === 'true');
         }
 
-        if (!empty($jenisPmo)) {
+        if (! empty($jenisPmo)) {
             $query->where('jenis_pmo', $jenisPmo);
         }
 
-        if (!empty($statusDiabetes)) {
+        if (! empty($statusDiabetes)) {
             $query->where('status_diabetes', $statusDiabetes);
         }
 
-        if (!empty($pmoUserId)) {
+        if (! empty($pmoUserId)) {
             $query->where('pmo_user_id', $pmoUserId);
         }
 
@@ -88,7 +86,7 @@ class PasienPmoRepository
         // Subquery: ID pasien yang sudah punya mapping AKTIF
         $alreadyMappedIds = PasienPmo::query()
             ->where('is_active', true)
-            ->when($excludeMappingId, fn($q) => $q->where('id', '!=', $excludeMappingId))
+            ->when($excludeMappingId, fn ($q) => $q->where('id', '!=', $excludeMappingId))
             ->pluck('id_user')
             ->toArray();
 
@@ -101,10 +99,10 @@ class PasienPmoRepository
             ->get(['id', 'name', 'whatsapp_number'])
             ->map(function ($user) {
                 return [
-                    'id'              => $user->id,
-                    'name'            => $user->name,
+                    'id' => $user->id,
+                    'name' => $user->name,
                     'whatsapp_number' => $user->whatsapp_number,
-                    'nik'             => $user->biodata->nik ?? null,
+                    'nik' => $user->biodata->nik ?? null,
                 ];
             })
             ->toArray();
@@ -113,9 +111,9 @@ class PasienPmoRepository
     /**
      * Bulk create: 1 PMO → multiple pasien dengan status_diabetes per pasien
      *
-     * @param array $pmoData ['pmo_user_id' => uuid]
-     * @param array $pasienItems Array of ['pasien_id' => uuid, 'status_diabetes' => string]
-     * @param array $commonData ['jenis_pmo', 'tanggal_regis', 'catatan', 'created_by']
+     * @param  array  $pmoData  ['pmo_user_id' => uuid]
+     * @param  array  $pasienItems  Array of ['pasien_id' => uuid, 'status_diabetes' => string]
+     * @param  array  $commonData  ['jenis_pmo', 'tanggal_regis', 'catatan', 'created_by']
      */
     public static function bulkCreate(array $pmoData, array $pasienItems, array $commonData): array
     {
@@ -124,7 +122,7 @@ class PasienPmoRepository
 
             // Load PMO
             $pmo = User::find($pmoData['pmo_user_id']);
-            if (!$pmo) {
+            if (! $pmo) {
                 throw new \Exception('PMO tidak ditemukan.');
             }
 
@@ -137,22 +135,22 @@ class PasienPmoRepository
 
             foreach ($pasienItems as $item) {
                 $pasien = $pasiens->get($item['pasien_id']);
-                if (!$pasien) {
+                if (! $pasien) {
                     throw new \Exception("Pasien dengan ID {$item['pasien_id']} tidak ditemukan.");
                 }
 
                 $mapping = PasienPmo::create([
-                    'id_user'         => $pasien->id,
-                    'pmo_user_id'     => $pmo->id,
-                    'nama_pasien'     => $pasien->name,
-                    'nik'             => $pasien->biodata->nik ?? '',
-                    'nama_pmo'        => $pmo->name,
-                    'jenis_pmo'       => $commonData['jenis_pmo'],
-                    'tanggal_regis'   => $commonData['tanggal_regis'],
+                    'id_user' => $pasien->id,
+                    'pmo_user_id' => $pmo->id,
+                    'nama_pasien' => $pasien->name,
+                    'nik' => $pasien->biodata->nik ?? '',
+                    'nama_pmo' => $pmo->name,
+                    'jenis_pmo' => $commonData['jenis_pmo'],
+                    'tanggal_regis' => $commonData['tanggal_regis'],
                     'status_diabetes' => $item['status_diabetes'],   // ← per pasien!
-                    'is_active'       => true,
-                    'catatan'         => $commonData['catatan'] ?? null,
-                    'created_by'      => $commonData['created_by'] ?? null,
+                    'is_active' => true,
+                    'catatan' => $commonData['catatan'] ?? null,
+                    'created_by' => $commonData['created_by'] ?? null,
                 ]);
 
                 $created[] = $mapping;
@@ -169,19 +167,21 @@ class PasienPmoRepository
     {
         return DB::transaction(function () use ($id, $data) {
             $mapping = PasienPmo::find($id);
-            if (!$mapping) return false;
+            if (! $mapping) {
+                return false;
+            }
 
             // Kalau pasien berubah, update snapshot
-            if (!empty($data['id_user']) && $data['id_user'] !== $mapping->id_user) {
+            if (! empty($data['id_user']) && $data['id_user'] !== $mapping->id_user) {
                 $pasien = User::with('biodata:id,user_id,nik')->find($data['id_user']);
                 if ($pasien) {
                     $data['nama_pasien'] = $pasien->name;
-                    $data['nik']         = $pasien->biodata->nik ?? '';
+                    $data['nik'] = $pasien->biodata->nik ?? '';
                 }
             }
 
             // Kalau PMO berubah, update snapshot
-            if (!empty($data['pmo_user_id']) && $data['pmo_user_id'] !== $mapping->pmo_user_id) {
+            if (! empty($data['pmo_user_id']) && $data['pmo_user_id'] !== $mapping->pmo_user_id) {
                 $pmo = User::find($data['pmo_user_id']);
                 if ($pmo) {
                     $data['nama_pmo'] = $pmo->name;
@@ -199,10 +199,12 @@ class PasienPmoRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $mapping = PasienPmo::find($id);
-            if (!$mapping) return false;
+            if (! $mapping) {
+                return false;
+            }
 
             return $mapping->update([
-                'is_active'  => false,
+                'is_active' => false,
                 'updated_by' => $userId,
             ]);
         });
@@ -215,7 +217,9 @@ class PasienPmoRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $mapping = PasienPmo::find($id);
-            if (!$mapping) return false;
+            if (! $mapping) {
+                return false;
+            }
 
             // Cek dulu apakah pasien sudah punya mapping aktif lain
             $hasActive = PasienPmo::where('id_user', $mapping->id_user)
@@ -228,7 +232,7 @@ class PasienPmoRepository
             }
 
             return $mapping->update([
-                'is_active'  => true,
+                'is_active' => true,
                 'updated_by' => $userId,
             ]);
         });
@@ -241,7 +245,9 @@ class PasienPmoRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $mapping = PasienPmo::find($id);
-            if (!$mapping) return false;
+            if (! $mapping) {
+                return false;
+            }
 
             $mapping->deleted_by = $userId;
             $mapping->save();

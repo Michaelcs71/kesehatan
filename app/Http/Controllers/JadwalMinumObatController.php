@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\JadwalMinumObat\{
-    IndexRequest,
-    StoreRequest,
-    UpdateRequest,
-    QuickCreateObatRequest
-};
+use App\Http\Requests\JadwalMinumObat\IndexRequest;
+use App\Http\Requests\JadwalMinumObat\QuickCreateObatRequest;
+use App\Http\Requests\JadwalMinumObat\StoreRequest;
+use App\Http\Requests\JadwalMinumObat\UpdateRequest;
+use App\Models\MasterSatuanObat;
 use App\Services\JadwalMinumObatService;
 use Illuminate\Http\JsonResponse;
 
@@ -20,28 +19,30 @@ class JadwalMinumObatController extends Controller
 
     public function index()
     {
-        return view($this->getViewPath() . '.index');
+        return view($this->getViewPath().'.index');
     }
 
     public function getData(IndexRequest $request): JsonResponse
     {
         $data = JadwalMinumObatService::getAllJadwal($request->validated());
+
         return response()->json($data);
     }
 
     public function create()
     {
-        return view($this->getViewPath() . '.form');
+        return view($this->getViewPath().'.form');
     }
 
     public function store(StoreRequest $request): JsonResponse
     {
         try {
             $result = JadwalMinumObatService::bulkCreate($request->validated());
+
             return response()->json([
                 'success' => true,
                 'message' => "Berhasil membuat {$result['count']} jadwal minum obat.",
-                'data'    => $result,
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -55,19 +56,19 @@ class JadwalMinumObatController extends Controller
     {
         $jadwal = JadwalMinumObatService::findJadwalById($id);
 
-        if (!$jadwal) {
+        if (! $jadwal) {
             return redirect()->route('jadwal-mo.index')
                 ->with('error', 'Jadwal tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.show', compact('id'));
+        return view($this->getViewPath().'.show', compact('id'));
     }
 
     public function showData(string $id): JsonResponse
     {
         $jadwal = JadwalMinumObatService::findJadwalById($id);
 
-        if (!$jadwal) {
+        if (! $jadwal) {
             return response()->json(['message' => 'Data tidak ditemukan'], 404);
         }
 
@@ -78,18 +79,19 @@ class JadwalMinumObatController extends Controller
     {
         $jadwal = JadwalMinumObatService::findJadwalById($id);
 
-        if (!$jadwal) {
+        if (! $jadwal) {
             return redirect()->route('jadwal-mo.index')
                 ->with('error', 'Jadwal tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.form', compact('id'));
+        return view($this->getViewPath().'.form', compact('id'));
     }
 
     public function update(UpdateRequest $request, string $id): JsonResponse
     {
         try {
             JadwalMinumObatService::updateJadwal($id, $request->validated());
+
             return response()->json([
                 'success' => true,
                 'message' => 'Jadwal berhasil diupdate.',
@@ -106,6 +108,7 @@ class JadwalMinumObatController extends Controller
     {
         try {
             JadwalMinumObatService::deleteJadwal($id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Jadwal berhasil dihapus.',
@@ -122,6 +125,7 @@ class JadwalMinumObatController extends Controller
     {
         try {
             JadwalMinumObatService::deactivate($id);
+
             return response()->json(['success' => true, 'message' => 'Jadwal dinonaktifkan.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -132,6 +136,7 @@ class JadwalMinumObatController extends Controller
     {
         try {
             JadwalMinumObatService::activate($id);
+
             return response()->json(['success' => true, 'message' => 'Jadwal diaktifkan.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -142,6 +147,7 @@ class JadwalMinumObatController extends Controller
     {
         try {
             JadwalMinumObatService::markSelesai($id);
+
             return response()->json(['success' => true, 'message' => 'Jadwal ditandai selesai.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -158,6 +164,7 @@ class JadwalMinumObatController extends Controller
     public function obatOptions(): JsonResponse
     {
         $search = request('search');
+
         return response()->json(['data' => JadwalMinumObatService::getObatOptions($search)]);
     }
 
@@ -171,19 +178,19 @@ class JadwalMinumObatController extends Controller
             // Load satuan untuk response
             $obat->load('satuan:id,nama,singkatan');
             $satuan = $obat->satuan?->singkatan ?? $obat->satuan?->nama;
-            $dosis  = $obat->dosis_default ? " {$obat->dosis_default}" : '';
+            $dosis = $obat->dosis_default ? " {$obat->dosis_default}" : '';
             $satuanStr = $satuan ? " ({$satuan})" : '';
 
             return response()->json([
                 'success' => true,
                 'message' => 'Obat baru berhasil ditambahkan ke master.',
                 'data' => [
-                    'id'            => $obat->id,
-                    'nama'          => $obat->nama,
+                    'id' => $obat->id,
+                    'nama' => $obat->nama,
                     'dosis_default' => $obat->dosis_default,
-                    'satuan'        => $satuan,
-                    'aturan_minum'  => $obat->aturan_minum,
-                    'label'         => $obat->nama . $dosis . $satuanStr,
+                    'satuan' => $satuan,
+                    'aturan_minum' => $obat->aturan_minum,
+                    'label' => $obat->nama.$dosis.$satuanStr,
                 ],
             ]);
         } catch (\Exception $e) {
@@ -199,14 +206,14 @@ class JadwalMinumObatController extends Controller
      */
     public function satuanOptions(): JsonResponse
     {
-        $satuans = \App\Models\MasterSatuanObat::where('is_active', true)
+        $satuans = MasterSatuanObat::where('is_active', true)
             ->orderBy('nama')
             ->get(['id', 'nama', 'singkatan'])
-            ->map(fn($s) => [
-                'id'        => $s->id,
-                'nama'      => $s->nama,
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'nama' => $s->nama,
                 'singkatan' => $s->singkatan,
-                'label'     => $s->nama . ($s->singkatan ? " ({$s->singkatan})" : ''),
+                'label' => $s->nama.($s->singkatan ? " ({$s->singkatan})" : ''),
             ])
             ->toArray();
 

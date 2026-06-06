@@ -28,12 +28,12 @@ class RegisteredUserController extends Controller
         $user = DB::transaction(function () use ($request) {
             // 1. Buat user
             $user = User::create([
-                'name'            => $request->name,
-                'username'        => $this->generateUsername($request->name),
-                'password'        => Hash::make($request->password),
-                'role'            => $request->role,
+                'name' => $request->name,
+                'username' => $this->generateUsername($request->name),
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
                 'whatsapp_number' => $request->whatsapp_number,
-                'is_active'       => true,
+                'is_active' => true,
             ]);
 
             // 2. Buat profile sesuai role
@@ -45,21 +45,21 @@ class RegisteredUserController extends Controller
 
             // 3. Buat biodata
             UserBiodata::create([
-                'user_id'          => $user->id,
-                'nik'              => $request->nik,
-                'no_kk'            => $request->no_kk,
-                'jenis_kelamin'    => $request->jenis_kelamin,
-                'tempat_lahir'     => $request->tempat_lahir,
-                'tanggal_lahir'    => $request->tanggal_lahir,
-                'alamat_jalan'     => $request->alamat_jalan,
-                'alamat_rt'        => $request->alamat_rt,
-                'alamat_rw'        => $request->alamat_rw,
-                'alamat_dusun'     => $request->alamat_dusun,
-                'alamat_desa'      => $request->alamat_desa,
+                'user_id' => $user->id,
+                'nik' => $request->nik,
+                'no_kk' => $request->no_kk,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'tempat_lahir' => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'alamat_jalan' => $request->alamat_jalan,
+                'alamat_rt' => $request->alamat_rt,
+                'alamat_rw' => $request->alamat_rw,
+                'alamat_dusun' => $request->alamat_dusun,
+                'alamat_desa' => $request->alamat_desa,
                 'alamat_kecamatan' => $request->alamat_kecamatan,
                 'alamat_kabupaten' => $request->alamat_kabupaten,
-                'alamat_provinsi'  => $request->alamat_provinsi,
-                'alamat_kodepos'   => $request->alamat_kodepos,
+                'alamat_provinsi' => $request->alamat_provinsi,
+                'alamat_kodepos' => $request->alamat_kodepos,
             ]);
 
             // 4. Sync Spatie role
@@ -88,7 +88,7 @@ class RegisteredUserController extends Controller
         $counter = 1;
 
         while (User::where('username', $username)->exists()) {
-            $username = $base . $counter;
+            $username = $base.$counter;
             $counter++;
         }
 

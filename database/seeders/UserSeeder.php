@@ -16,12 +16,12 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'superadmin@kesehatan.test'],
             [
-                'name'              => 'Super Admin',
-                'username'          => 'superadmin',
-                'password'          => Hash::make('password'),
-                'role'              => UserRole::SUPERADMIN->value,
-                'whatsapp_number'   => '081234567890',
-                'is_active'         => true,
+                'name' => 'Super Admin',
+                'username' => 'superadmin',
+                'password' => Hash::make('password'),
+                'role' => UserRole::SUPERADMIN->value,
+                'whatsapp_number' => '081234567890',
+                'is_active' => true,
                 'email_verified_at' => now(),
             ]
         );
@@ -29,12 +29,12 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@kesehatan.test'],
             [
-                'name'              => 'Admin Verifikator',
-                'username'          => 'admin',
-                'password'          => Hash::make('password'),
-                'role'              => UserRole::ADMIN->value,
-                'whatsapp_number'   => '081234567891',
-                'is_active'         => true,
+                'name' => 'Admin Verifikator',
+                'username' => 'admin',
+                'password' => Hash::make('password'),
+                'role' => UserRole::ADMIN->value,
+                'whatsapp_number' => '081234567891',
+                'is_active' => true,
                 'email_verified_at' => now(),
             ]
         );
@@ -42,12 +42,12 @@ class UserSeeder extends Seeder
         $pmoUser = User::updateOrCreate(
             ['email' => 'pmo@kesehatan.test'],
             [
-                'name'              => 'Budi PMO',
-                'username'          => 'pmo_budi',
-                'password'          => Hash::make('password'),
-                'role'              => UserRole::PMO->value,
-                'whatsapp_number'   => '081234567892',
-                'is_active'         => true,
+                'name' => 'Budi PMO',
+                'username' => 'pmo_budi',
+                'password' => Hash::make('password'),
+                'role' => UserRole::PMO->value,
+                'whatsapp_number' => '081234567892',
+                'is_active' => true,
                 'email_verified_at' => now(),
             ]
         );
@@ -55,22 +55,22 @@ class UserSeeder extends Seeder
         PmoProfile::updateOrCreate(
             ['user_id' => $pmoUser->id],
             [
-                'jenis_kelamin'          => 'L',
+                'jenis_kelamin' => 'L',
                 'hubungan_dengan_pasien' => 'Anak',
-                'kota'                   => 'Jakarta',
-                'provinsi'               => 'DKI Jakarta',
+                'kota' => 'Jakarta',
+                'provinsi' => 'DKI Jakarta',
             ]
         );
 
         $pasienUser = User::updateOrCreate(
             ['email' => 'pasien@kesehatan.test'],
             [
-                'name'              => 'Siti Pasien',
-                'username'          => 'pasien_siti',
-                'password'          => Hash::make('password'),
-                'role'              => UserRole::PASIEN->value,
-                'whatsapp_number'   => '081234567893',
-                'is_active'         => true,
+                'name' => 'Siti Pasien',
+                'username' => 'pasien_siti',
+                'password' => Hash::make('password'),
+                'role' => UserRole::PASIEN->value,
+                'whatsapp_number' => '081234567893',
+                'is_active' => true,
                 'email_verified_at' => now(),
             ]
         );
@@ -78,14 +78,14 @@ class UserSeeder extends Seeder
         PasienProfile::updateOrCreate(
             ['user_id' => $pasienUser->id],
             [
-                'pmo_id'            => $pmoUser->id,
-                'jenis_kelamin'     => 'P',
-                'tipe_diabetes'     => 'tipe_2',
+                'pmo_id' => $pmoUser->id,
+                'jenis_kelamin' => 'P',
+                'tipe_diabetes' => 'tipe_2',
                 'tanggal_diagnosis' => now()->subYears(3),
-                'tinggi_badan'      => 158,
-                'berat_badan'       => 65,
-                'kota'              => 'Jakarta',
-                'provinsi'          => 'DKI Jakarta',
+                'tinggi_badan' => 158,
+                'berat_badan' => 65,
+                'kota' => 'Jakarta',
+                'provinsi' => 'DKI Jakarta',
             ]
         );
 

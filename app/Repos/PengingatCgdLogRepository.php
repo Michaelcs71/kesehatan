@@ -34,33 +34,33 @@ class PengingatCgdLogRepository
 
         $query->search($search);
 
-        if (!empty($status)) {
+        if (! empty($status)) {
             $query->where('status', $status);
         }
 
-        if (!empty($kategoriHasil)) {
+        if (! empty($kategoriHasil)) {
             $query->where('kategori_hasil', $kategoriHasil);
         }
 
-        if (!empty($cgdId)) {
+        if (! empty($cgdId)) {
             $query->where('id_cgd', $cgdId);
         }
 
-        if (!empty($tanggalStart) && !empty($tanggalEnd)) {
+        if (! empty($tanggalStart) && ! empty($tanggalEnd)) {
             $query->whereBetween('tgl_cgd', [$tanggalStart, $tanggalEnd]);
-        } elseif (!empty($tanggalStart)) {
+        } elseif (! empty($tanggalStart)) {
             $query->where('tgl_cgd', '>=', $tanggalStart);
-        } elseif (!empty($tanggalEnd)) {
+        } elseif (! empty($tanggalEnd)) {
             $query->where('tgl_cgd', '<=', $tanggalEnd);
         }
 
         // Role filter: Pasien cuma lihat log sendiri
-        if (!empty($forUserId)) {
+        if (! empty($forUserId)) {
             $query->where('id_user', $forUserId);
         }
 
         // Role filter: PMO cuma lihat log pasien yang dia damping
-        if (!empty($forPmoUserId)) {
+        if (! empty($forPmoUserId)) {
             $query->whereHas('user.pasienPmoAsPasien', function ($q) use ($forPmoUserId) {
                 $q->where('pmo_user_id', $forPmoUserId)
                     ->where('is_active', true);
@@ -100,15 +100,16 @@ class PengingatCgdLogRepository
             ->get(['id', 'tgl_jadwal_cgd', 'jam_mulai', 'jam_berakhir', 'puasa', 'tempat'])
             ->map(function ($c) {
                 $tgl = $c->tgl_jadwal_cgd?->format('d M Y');
-                $jam = substr($c->jam_mulai ?? '', 0, 5) . ' - ' . substr($c->jam_berakhir ?? '', 0, 5);
+                $jam = substr($c->jam_mulai ?? '', 0, 5).' - '.substr($c->jam_berakhir ?? '', 0, 5);
+
                 return [
-                    'id'           => $c->id,
-                    'tgl'          => $c->tgl_jadwal_cgd?->format('Y-m-d'),
-                    'tgl_display'  => $tgl,
-                    'jam'          => $jam,
-                    'puasa'        => $c->puasa,
-                    'tempat'       => $c->tempat,
-                    'label'        => "{$tgl} | {$jam} | {$c->tempat} (Puasa: {$c->puasa})",
+                    'id' => $c->id,
+                    'tgl' => $c->tgl_jadwal_cgd?->format('Y-m-d'),
+                    'tgl_display' => $tgl,
+                    'jam' => $jam,
+                    'puasa' => $c->puasa,
+                    'tempat' => $c->tempat,
+                    'label' => "{$tgl} | {$jam} | {$c->tempat} (Puasa: {$c->puasa})",
                 ];
             })
             ->toArray();
@@ -131,7 +132,10 @@ class PengingatCgdLogRepository
     {
         return DB::transaction(function () use ($id, $data) {
             $log = PengingatCgdLog::find($id);
-            if (!$log) return false;
+            if (! $log) {
+                return false;
+            }
+
             return $log->update($data);
         });
     }
@@ -143,7 +147,10 @@ class PengingatCgdLogRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $log = PengingatCgdLog::find($id);
-            if (!$log) return false;
+            if (! $log) {
+                return false;
+            }
+
             return $log->update(['status' => 'nonaktif', 'updated_by' => $userId]);
         });
     }
@@ -155,7 +162,10 @@ class PengingatCgdLogRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $log = PengingatCgdLog::find($id);
-            if (!$log) return false;
+            if (! $log) {
+                return false;
+            }
+
             return $log->update(['status' => 'aktif', 'updated_by' => $userId]);
         });
     }
@@ -167,10 +177,13 @@ class PengingatCgdLogRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $log = PengingatCgdLog::find($id);
-            if (!$log) return false;
+            if (! $log) {
+                return false;
+            }
 
             $log->deleted_by = $userId;
             $log->save();
+
             return (bool) $log->delete();
         });
     }

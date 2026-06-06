@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Auth\Events\Lockout;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -24,7 +23,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'login'    => ['required', 'string'],
+            'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -32,7 +31,7 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'login.required'    => 'Nama lengkap atau No. WhatsApp wajib diisi.',
+            'login.required' => 'Nama lengkap atau No. WhatsApp wajib diisi.',
             'password.required' => 'Password wajib diisi.',
         ];
     }
@@ -51,10 +50,10 @@ class LoginRequest extends FormRequest
 
         $credentials = [
             $loginField => $loginValue,
-            'password'  => $this->input('password'),
+            'password' => $this->input('password'),
         ];
 
-        if (!Auth::attempt($credentials, $this->boolean('remember'))) {
+        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -63,7 +62,7 @@ class LoginRequest extends FormRequest
         }
 
         // Cek apakah akun aktif
-        if (!Auth::user()->is_active) {
+        if (! Auth::user()->is_active) {
             Auth::logout();
             throw ValidationException::withMessages([
                 'login' => 'Akun Anda dinonaktifkan. Hubungi administrator.',
@@ -108,7 +107,7 @@ class LoginRequest extends FormRequest
             // Normalisasi: 628xxx -> 08xxx (atau biarkan sesuai format DB)
             // Kita normalisasi ke format 08xxx (paling umum di Indonesia)
             if (str_starts_with($clean, '62')) {
-                $clean = '0' . substr($clean, 2);
+                $clean = '0'.substr($clean, 2);
             }
 
             return $clean;
@@ -119,7 +118,7 @@ class LoginRequest extends FormRequest
 
     public function ensureIsNotRateLimited(): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -137,6 +136,6 @@ class LoginRequest extends FormRequest
 
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('login')) . '|' . $this->ip());
+        return Str::transliterate(Str::lower($this->string('login')).'|'.$this->ip());
     }
 }

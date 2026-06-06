@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PengingatMoLog\{IndexRequest, StoreRequest, UpdateRequest};
+use App\Http\Requests\PengingatMoLog\IndexRequest;
+use App\Http\Requests\PengingatMoLog\StoreRequest;
+use App\Http\Requests\PengingatMoLog\UpdateRequest;
 use App\Services\PengingatMoLogService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class PengingatMoLogController extends Controller
 {
@@ -16,18 +17,19 @@ class PengingatMoLogController extends Controller
 
     public function index()
     {
-        return view($this->getViewPath() . '.index');
+        return view($this->getViewPath().'.index');
     }
 
     public function getData(IndexRequest $request): JsonResponse
     {
         $data = PengingatMoLogService::getAllLogs($request->validated());
+
         return response()->json($data);
     }
 
     public function create()
     {
-        return view($this->getViewPath() . '.form');
+        return view($this->getViewPath().'.form');
     }
 
     public function store(StoreRequest $request): JsonResponse
@@ -41,7 +43,7 @@ class PengingatMoLogController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Konfirmasi minum obat berhasil disimpan.',
-                'data'    => $log,
+                'data' => $log,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -55,19 +57,19 @@ class PengingatMoLogController extends Controller
     {
         $log = PengingatMoLogService::findLogById($id);
 
-        if (!$log) {
+        if (! $log) {
             return redirect()->route('pengingat-mo.index')
                 ->with('error', 'Log tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.show', compact('id'));
+        return view($this->getViewPath().'.show', compact('id'));
     }
 
     public function showData(string $id): JsonResponse
     {
         $log = PengingatMoLogService::findLogById($id);
 
-        if (!$log) {
+        if (! $log) {
             return response()->json(['message' => 'Data tidak ditemukan'], 404);
         }
 
@@ -78,12 +80,12 @@ class PengingatMoLogController extends Controller
     {
         $log = PengingatMoLogService::findLogById($id);
 
-        if (!$log) {
+        if (! $log) {
             return redirect()->route('pengingat-mo.index')
                 ->with('error', 'Log tidak ditemukan.');
         }
 
-        return view($this->getViewPath() . '.form', compact('id'));
+        return view($this->getViewPath().'.form', compact('id'));
     }
 
     public function update(UpdateRequest $request, string $id): JsonResponse
@@ -111,6 +113,7 @@ class PengingatMoLogController extends Controller
     {
         try {
             PengingatMoLogService::deleteLog($id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Log berhasil dihapus.',
@@ -127,6 +130,7 @@ class PengingatMoLogController extends Controller
     {
         try {
             PengingatMoLogService::deactivate($id);
+
             return response()->json(['success' => true, 'message' => 'Log dinonaktifkan.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -137,6 +141,7 @@ class PengingatMoLogController extends Controller
     {
         try {
             PengingatMoLogService::activate($id);
+
             return response()->json(['success' => true, 'message' => 'Log diaktifkan.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class JadwalCgd extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'jadwal_cgds';
 
@@ -32,7 +32,7 @@ class JadwalCgd extends Model
     protected function casts(): array
     {
         return [
-            'tgl_input'      => 'date',
+            'tgl_input' => 'date',
             'tgl_jadwal_cgd' => 'date',
         ];
     }
@@ -81,7 +81,10 @@ class JadwalCgd extends Model
 
     public function scopeSearch(Builder $q, ?string $term): Builder
     {
-        if (blank($term)) return $q;
+        if (blank($term)) {
+            return $q;
+        }
+
         return $q->where(function ($qq) use ($term) {
             $qq->where('tempat', 'like', "%{$term}%")
                 ->orWhere('catatan', 'like', "%{$term}%");
@@ -92,13 +95,19 @@ class JadwalCgd extends Model
 
     public function getJamMulaiFormatAttribute(): string
     {
-        if (!$this->jam_mulai) return '-';
+        if (! $this->jam_mulai) {
+            return '-';
+        }
+
         return substr($this->jam_mulai, 0, 5);  // "07:00:00" → "07:00"
     }
 
     public function getJamBerakhirFormatAttribute(): string
     {
-        if (!$this->jam_berakhir) return '-';
+        if (! $this->jam_berakhir) {
+            return '-';
+        }
+
         return substr($this->jam_berakhir, 0, 5);
     }
 
@@ -108,28 +117,38 @@ class JadwalCgd extends Model
      */
     public function getDurasiJamAttribute(): float
     {
-        if (!$this->jam_mulai || !$this->jam_berakhir) return 0;
+        if (! $this->jam_mulai || ! $this->jam_berakhir) {
+            return 0;
+        }
         $start = strtotime($this->jam_mulai);
-        $end   = strtotime($this->jam_berakhir);
-        if ($end <= $start) return 0;
+        $end = strtotime($this->jam_berakhir);
+        if ($end <= $start) {
+            return 0;
+        }
+
         return round(($end - $start) / 3600, 1);
     }
 
     public function getDurasiLabelAttribute(): string
     {
         $jam = $this->durasi_jam;
-        if ($jam <= 0) return '-';
-        if ($jam == floor($jam)) return ((int) $jam) . ' jam';
-        return $jam . ' jam';
+        if ($jam <= 0) {
+            return '-';
+        }
+        if ($jam == floor($jam)) {
+            return ((int) $jam).' jam';
+        }
+
+        return $jam.' jam';
     }
 
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'aktif'    => 'Aktif',
+            'aktif' => 'Aktif',
             'nonaktif' => 'Nonaktif',
-            'selesai'  => 'Selesai',
-            default    => ucfirst($this->status),
+            'selesai' => 'Selesai',
+            default => ucfirst($this->status),
         };
     }
 

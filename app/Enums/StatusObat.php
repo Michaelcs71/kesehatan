@@ -4,14 +4,14 @@ namespace App\Enums;
 
 enum StatusObat: string
 {
-    case PENDING  = 'pending';
+    case PENDING = 'pending';
     case APPROVED = 'approved';
     case REJECTED = 'rejected';
 
     public function label(): string
     {
         return match ($this) {
-            self::PENDING  => 'Menunggu Verifikasi',
+            self::PENDING => 'Menunggu Verifikasi',
             self::APPROVED => 'Disetujui',
             self::REJECTED => 'Ditolak',
         };
@@ -20,7 +20,7 @@ enum StatusObat: string
     public function badgeColor(): string
     {
         return match ($this) {
-            self::PENDING  => 'warning',
+            self::PENDING => 'warning',
             self::APPROVED => 'success',
             self::REJECTED => 'danger',
         };
@@ -29,7 +29,7 @@ enum StatusObat: string
     public function icon(): string
     {
         return match ($this) {
-            self::PENDING  => '⏳',
+            self::PENDING => '⏳',
             self::APPROVED => '✅',
             self::REJECTED => '❌',
         };

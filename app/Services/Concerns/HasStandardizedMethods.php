@@ -48,11 +48,11 @@ trait HasStandardizedMethods
      */
     public static function getAll(array $params): array
     {
-        $method = 'getAll' . static::getEntityPluralName();
+        $method = 'getAll'.static::getEntityPluralName();
 
-        if (!method_exists(static::class, $method)) {
+        if (! method_exists(static::class, $method)) {
             throw new \BadMethodCallException(
-                static::class . "::{$method}() must be defined."
+                static::class."::{$method}() must be defined."
             );
         }
 
@@ -65,11 +65,11 @@ trait HasStandardizedMethods
      */
     public static function getById(string $id)
     {
-        $method = 'find' . static::getEntityName() . 'ById';
+        $method = 'find'.static::getEntityName().'ById';
 
-        if (!method_exists(static::class, $method)) {
+        if (! method_exists(static::class, $method)) {
             throw new \BadMethodCallException(
-                static::class . "::{$method}() must be defined."
+                static::class."::{$method}() must be defined."
             );
         }
 
@@ -82,11 +82,11 @@ trait HasStandardizedMethods
      */
     public static function create(array $data)
     {
-        $method = 'create' . static::getEntityName();
+        $method = 'create'.static::getEntityName();
 
-        if (!method_exists(static::class, $method)) {
+        if (! method_exists(static::class, $method)) {
             throw new \BadMethodCallException(
-                static::class . "::{$method}() must be defined."
+                static::class."::{$method}() must be defined."
             );
         }
 
@@ -99,11 +99,11 @@ trait HasStandardizedMethods
      */
     public static function update(string $id, array $data): bool
     {
-        $method = 'update' . static::getEntityName();
+        $method = 'update'.static::getEntityName();
 
-        if (!method_exists(static::class, $method)) {
+        if (! method_exists(static::class, $method)) {
             throw new \BadMethodCallException(
-                static::class . "::{$method}() must be defined."
+                static::class."::{$method}() must be defined."
             );
         }
 
@@ -116,11 +116,11 @@ trait HasStandardizedMethods
      */
     public static function delete(string $id): bool
     {
-        $method = 'delete' . static::getEntityName();
+        $method = 'delete'.static::getEntityName();
 
-        if (!method_exists(static::class, $method)) {
+        if (! method_exists(static::class, $method)) {
             throw new \BadMethodCallException(
-                static::class . "::{$method}() must be defined."
+                static::class."::{$method}() must be defined."
             );
         }
 

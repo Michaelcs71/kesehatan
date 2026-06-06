@@ -3,18 +3,18 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasUuids, HasRoles {
+    use HasFactory, HasRoles, HasUuids, Notifiable {
         // Alias method dari trait HasRoles supaya bisa dipanggil dengan nama berbeda
         HasRoles::hasPermissionTo as protected parentHasPermissionTo;
     }
@@ -39,11 +39,11 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'     => 'datetime',
-            'password'              => 'hashed',
-            'is_active'             => 'boolean',
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
             'permission_overridden' => 'boolean',
-            'role'                  => UserRole::class,
+            'role' => UserRole::class,
         ];
     }
 
@@ -86,6 +86,7 @@ class User extends Authenticatable
     public function isRole(UserRole|string $role): bool
     {
         $value = $role instanceof UserRole ? $role->value : $role;
+
         return $this->role?->value === $value;
     }
 
@@ -125,17 +126,18 @@ class User extends Authenticatable
         foreach (array_slice($words, 0, 2) as $w) {
             $initials .= strtoupper($w[0] ?? '');
         }
+
         return $initials ?: 'U';
     }
 
     public function homeRoute(): string
     {
         return match ($this->role) {
-            UserRole::SUPERADMIN                  => 'superadmin.dashboard',
-            UserRole::ADMIN                       => 'admin.dashboard',
-            UserRole::PMO                         => 'pmo.dashboard',
-            UserRole::PASIEN                      => 'pasien.dashboard',
-            default                               => 'dashboard',
+            UserRole::SUPERADMIN => 'superadmin.dashboard',
+            UserRole::ADMIN => 'admin.dashboard',
+            UserRole::PMO => 'pmo.dashboard',
+            UserRole::PASIEN => 'pasien.dashboard',
+            default => 'dashboard',
         };
     }
 
@@ -157,6 +159,7 @@ class User extends Authenticatable
 
         if ($this->permission_overridden) {
             $permissionName = is_string($permission) ? $permission : $permission->name;
+
             return $this->getDirectPermissions()->contains('name', $permissionName);
         }
 
@@ -168,14 +171,14 @@ class User extends Authenticatable
      * - Override mode: hanya direct
      * - Default: union role + direct (Spatie default)
      */
-    public function getAllPermissions(): \Illuminate\Support\Collection
+    public function getAllPermissions(): Collection
     {
         if ($this->permission_overridden) {
             return $this->getDirectPermissions();
         }
 
         $rolePerms = $this->getPermissionsViaRoles();
-        $direct    = $this->getDirectPermissions();
+        $direct = $this->getDirectPermissions();
 
         return $direct->merge($rolePerms)->unique('id');
     }

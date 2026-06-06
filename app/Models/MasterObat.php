@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\SatuanObat;
 use App\Enums\StatusObat;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -14,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 
 class MasterObat extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'master_obats';
 
@@ -38,7 +37,7 @@ class MasterObat extends Model
     protected function casts(): array
     {
         return [
-            'status'      => StatusObat::class,
+            'status' => StatusObat::class,
             'verified_at' => 'datetime',
         ];
     }
@@ -92,6 +91,7 @@ class MasterObat extends Model
         if (blank($term)) {
             return $q;
         }
+
         return $q->where(function ($q) use ($term) {
             $q->where('nama', 'like', "%{$term}%")
                 ->orWhere('dosis_default', 'like', "%{$term}%");
@@ -100,7 +100,10 @@ class MasterObat extends Model
 
     public function scopeKategoriId(Builder $q, ?string $kategoriId): Builder
     {
-        if (blank($kategoriId)) return $q;
+        if (blank($kategoriId)) {
+            return $q;
+        }
+
         return $q->where('kategori_id', $kategoriId);
     }
 
@@ -128,7 +131,7 @@ class MasterObat extends Model
 
     public function getDisplayNameAttribute(): string
     {
-        return $this->nama . ' (' . ($this->dosis_default ?? '-') . ')';
+        return $this->nama.' ('.($this->dosis_default ?? '-').')';
     }
 
     public function getKategoriNamaAttribute(): ?string

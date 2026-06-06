@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -98,16 +99,19 @@ class RolePermissionSeeder extends Seeder
         'riwayat.index',
 
         'konten-pengumuman.index',
+        'konten-pengumuman.show',
         'konten-pengumuman.create',
         'konten-pengumuman.edit',
         'konten-pengumuman.delete',
 
         'konten-edukasi.index',
+        'konten-edukasi.show',
         'konten-edukasi.create',
         'konten-edukasi.edit',
         'konten-edukasi.delete',
 
         'konten-galery.index',
+        'konten-galery.show',
         'konten-galery.create',
         'konten-galery.edit',
         'konten-galery.delete',
@@ -252,14 +256,17 @@ class RolePermissionSeeder extends Seeder
 
             // Konten
             'konten-pengumuman.index',
+            'konten-pengumuman.show',
             'konten-pengumuman.create',
             'konten-pengumuman.edit',
             'konten-pengumuman.delete',
             'konten-edukasi.index',
+            'konten-edukasi.show',
             'konten-edukasi.create',
             'konten-edukasi.edit',
             'konten-edukasi.delete',
             'konten-galery.index',
+            'konten-galery.show',
             'konten-galery.create',
             'konten-galery.edit',
             'konten-galery.delete',
@@ -282,7 +289,7 @@ class RolePermissionSeeder extends Seeder
         foreach ($this->permissions as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
         }
-        $this->command->info('  Total permissions: ' . count($this->permissions));
+        $this->command->info('  Total permissions: '.count($this->permissions));
 
         $this->command->info('');
         $this->command->info('Creating roles & assigning permissions...');
@@ -293,17 +300,17 @@ class RolePermissionSeeder extends Seeder
             if ($perms === '*') {
                 $allPerms = Permission::pluck('name')->toArray();
                 $role->syncPermissions($allPerms);
-                $this->command->info("  - {$roleName}: " . count($allPerms) . ' permissions (ALL)');
+                $this->command->info("  - {$roleName}: ".count($allPerms).' permissions (ALL)');
             } else {
                 $role->syncPermissions($perms);
-                $this->command->info("  - {$roleName}: " . count($perms) . ' permissions');
+                $this->command->info("  - {$roleName}: ".count($perms).' permissions');
             }
         }
 
         $this->command->info('');
         $this->command->info('Syncing existing users with Spatie roles...');
         $userCount = 0;
-        \App\Models\User::all()->each(function ($user) use (&$userCount) {
+        User::all()->each(function ($user) use (&$userCount) {
             if ($user->role) {
                 $user->syncRoles([$user->role->value]);
                 // Clear direct permissions — hak akses MURNI dari role

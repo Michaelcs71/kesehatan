@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/micha/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/subagent-driven-development/**)",
+      "Bash(cd /d d:\\\\coding\\\\kesehatanmysql)",
+      "Bash(composer require *)",
+      "Bash(mkdir -p tests/Unit/Pengingat)",
+      "Bash(git commit -m ' *)",
+      "Bash(composer show *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npm run *)",
+      "Bash(composer test *)"
+    ],
+    "additionalDirectories": [
+      "d:\\coding\\kesehatanmysql\\tests\\Unit"
+    ]
+  }
+}

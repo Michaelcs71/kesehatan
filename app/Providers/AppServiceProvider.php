@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Services\Whatsapp\CloudApiWhatsAppSender;
+use App\Services\Whatsapp\LogWhatsAppSender;
+use App\Services\Whatsapp\WhatsAppSender;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,10 +14,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(\App\Services\Whatsapp\WhatsAppSender::class, function () {
+        $this->app->bind(WhatsAppSender::class, function () {
             return match (config('pengingat.whatsapp.driver')) {
-                'cloud_api' => new \App\Services\Whatsapp\CloudApiWhatsAppSender(),
-                default     => new \App\Services\Whatsapp\LogWhatsAppSender(),
+                'cloud_api' => new CloudApiWhatsAppSender,
+                default => new LogWhatsAppSender,
             };
         });
     }

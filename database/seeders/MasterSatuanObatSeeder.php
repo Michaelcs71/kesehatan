@@ -25,6 +25,6 @@ class MasterSatuanObatSeeder extends Seeder
             );
         }
 
-        $this->command->info('  [OK] ' . count($defaults) . ' default satuan obat seeded');
+        $this->command->info('  [OK] '.count($defaults).' default satuan obat seeded');
     }
 }

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PengingatMoLog extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'pengingat_mo_logs';
 
@@ -36,7 +36,7 @@ class PengingatMoLog extends Model
     {
         return [
             'tgl_minum_obat' => 'date',
-            'patuh_menit'    => 'integer',
+            'patuh_menit' => 'integer',
         ];
     }
 
@@ -106,7 +106,10 @@ class PengingatMoLog extends Model
 
     public function scopeSearch(Builder $q, ?string $term): Builder
     {
-        if (blank($term)) return $q;
+        if (blank($term)) {
+            return $q;
+        }
+
         return $q->where(function ($qq) use ($term) {
             $qq->where('nama_pasien', 'like', "%{$term}%")
                 ->orWhere('nama_obat', 'like', "%{$term}%");
@@ -117,13 +120,19 @@ class PengingatMoLog extends Model
 
     public function getJamMinumObatFormatAttribute(): string
     {
-        if (!$this->jam_minum_obat) return '-';
+        if (! $this->jam_minum_obat) {
+            return '-';
+        }
+
         return substr($this->jam_minum_obat, 0, 5);
     }
 
     public function getJamSlotTargetFormatAttribute(): string
     {
-        if (!$this->jam_slot_target) return '-';
+        if (! $this->jam_slot_target) {
+            return '-';
+        }
+
         return substr($this->jam_slot_target, 0, 5);
     }
 
@@ -133,9 +142,14 @@ class PengingatMoLog extends Model
     public function getPatuhLabelAttribute(): string
     {
         $menit = $this->patuh_menit;
-        if ($menit === 0) return 'Tepat waktu';
-        if ($menit > 0) return '+' . $menit . ' menit (telat)';
-        return abs($menit) . ' menit lebih awal';
+        if ($menit === 0) {
+            return 'Tepat waktu';
+        }
+        if ($menit > 0) {
+            return '+'.$menit.' menit (telat)';
+        }
+
+        return abs($menit).' menit lebih awal';
     }
 
     /**
@@ -144,27 +158,32 @@ class PengingatMoLog extends Model
     public function getPatuhKategoriAttribute(): string
     {
         $menit = abs($this->patuh_menit);
-        if ($menit <= 15) return 'tepat_waktu';      // ±15 menit toleransi
-        if ($menit <= 60) return 'terlambat';         // 16-60 menit
+        if ($menit <= 15) {
+            return 'tepat_waktu';
+        }      // ±15 menit toleransi
+        if ($menit <= 60) {
+            return 'terlambat';
+        }         // 16-60 menit
+
         return 'sangat_terlambat';                    // >60 menit
     }
 
     public function getPatuhBadgeColorAttribute(): string
     {
         return match ($this->patuh_kategori) {
-            'tepat_waktu'      => 'success',
-            'terlambat'        => 'warning',
+            'tepat_waktu' => 'success',
+            'terlambat' => 'warning',
             'sangat_terlambat' => 'danger',
-            default            => 'secondary',
+            default => 'secondary',
         };
     }
 
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'aktif'    => 'Aktif',
+            'aktif' => 'Aktif',
             'nonaktif' => 'Nonaktif',
-            default    => ucfirst($this->status),
+            default => ucfirst($this->status),
         };
     }
 
@@ -184,9 +203,11 @@ class PengingatMoLog extends Model
      */
     public static function calculatePatuhMenit(?string $jamSlotTarget, string $jamMinumObat): int
     {
-        if (!$jamSlotTarget) return 0;
+        if (! $jamSlotTarget) {
+            return 0;
+        }
 
-        $slotMinutes  = self::timeToMinutes($jamSlotTarget);
+        $slotMinutes = self::timeToMinutes($jamSlotTarget);
         $actualMinutes = self::timeToMinutes($jamMinumObat);
 
         return $actualMinutes - $slotMinutes;
@@ -195,6 +216,7 @@ class PengingatMoLog extends Model
     protected static function timeToMinutes(string $time): int
     {
         [$h, $m] = array_pad(explode(':', $time), 2, 0);
+
         return ((int) $h) * 60 + ((int) $m);
     }
 }

@@ -423,6 +423,73 @@
             });
 
             // 2️⃣ DISTRIBUSI KATEGORI CGD - Doughnut
+            // Plugin: tampilkan total di tengah donut, tween angka saat
+            // segmen di-hide/show lewat legend (easeOutCubic ~600ms).
+            const doughnutCenterText = {
+                id: 'doughnutCenterText',
+                afterDraw(chart, _args, opts) {
+                    const {
+                        ctx,
+                        chartArea
+                    } = chart;
+                    if (!chartArea) return;
+
+                    // Total dari segmen yang sedang TERLIHAT saja
+                    const values = chart.data.datasets[0].data;
+                    let target = 0;
+                    values.forEach((v, i) => {
+                        if (chart.getDataVisibility(i)) target += Number(v) || 0;
+                    });
+
+                    // State tween per-chart
+                    const st = chart.$centerTween ||
+                        (chart.$centerTween = {
+                            cur: target,
+                            from: target,
+                            to: target,
+                            start: 0,
+                            dur: 0
+                        });
+
+                    if (st.to !== target) {
+                        st.from = st.cur;
+                        st.to = target;
+                        st.start = performance.now();
+                        st.dur = 600;
+                    }
+
+                    if (st.dur > 0) {
+                        const t = Math.min(1, (performance.now() - st.start) / st.dur);
+                        const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+                        st.cur = st.from + (st.to - st.from) * eased;
+                        if (t < 1) {
+                            requestAnimationFrame(() => chart.draw());
+                        } else {
+                            st.cur = st.to;
+                            st.dur = 0;
+                        }
+                    }
+
+                    const cx = (chartArea.left + chartArea.right) / 2;
+                    const cy = (chartArea.top + chartArea.bottom) / 2;
+                    const value = Math.round(st.cur).toLocaleString('id-ID');
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    ctx.fillStyle = PALETTE.dark;
+                    ctx.font = "700 30px 'Inter', system-ui, sans-serif";
+                    ctx.fillText(value, cx, cy - 8);
+
+                    ctx.fillStyle = PALETTE.muted;
+                    ctx.font = "500 12px 'Inter', system-ui, sans-serif";
+                    ctx.fillText('Total Log', cx, cy + 16);
+
+                    ctx.restore();
+                }
+            };
+
             new Chart(document.getElementById('chartKategoriCgd'), {
                 type: 'doughnut',
                 data: {
@@ -440,6 +507,10 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     cutout: '70%',
+                    animation: {
+                        animateRotate: true,
+                        animateScale: false
+                    },
                     plugins: {
                         legend: {
                             display: true,
@@ -453,7 +524,8 @@
                             }
                         }
                     }
-                }
+                },
+                plugins: [doughnutCenterText]
             });
 
             // 3️⃣ COMPLIANCE MINUM OBAT - Stacked Bar

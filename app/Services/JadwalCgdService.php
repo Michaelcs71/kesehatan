@@ -20,7 +20,7 @@ class JadwalCgdService
 
         return [
             'TotalRows' => $data->total(),
-            'Rows'      => $data->items(),
+            'Rows' => $data->items(),
         ];
     }
 
@@ -29,14 +29,15 @@ class JadwalCgdService
         if (empty($id) || in_array($id, ['create', 'edit'])) {
             return null;
         }
+
         return JadwalCgdRepository::findJadwalById($id);
     }
 
     public static function createJadwal(array $data): JadwalCgd
     {
-        $data['tgl_input']  = now()->format('Y-m-d');
+        $data['tgl_input'] = now()->format('Y-m-d');
         $data['created_by'] = Auth::id();
-        $data['status']     = $data['status'] ?? 'aktif';
+        $data['status'] = $data['status'] ?? 'aktif';
 
         return JadwalCgdRepository::createJadwal($data);
     }
@@ -44,6 +45,7 @@ class JadwalCgdService
     public static function updateJadwal(string $id, array $data): bool
     {
         $data['updated_by'] = Auth::id();
+
         return JadwalCgdRepository::updateJadwal($id, $data);
     }
 
@@ -75,11 +77,11 @@ class JadwalCgdService
     public static function getStats(): array
     {
         return [
-            'total'    => JadwalCgd::count(),
-            'aktif'    => JadwalCgd::where('status', 'aktif')->count(),
+            'total' => JadwalCgd::count(),
+            'aktif' => JadwalCgd::where('status', 'aktif')->count(),
             'upcoming' => JadwalCgd::upcoming()->count(),
-            'past'     => JadwalCgd::past()->count(),
-            'selesai'  => JadwalCgd::where('status', 'selesai')->count(),
+            'past' => JadwalCgd::past()->count(),
+            'selesai' => JadwalCgd::where('status', 'selesai')->count(),
         ];
     }
 }

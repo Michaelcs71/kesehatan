@@ -10,7 +10,8 @@ class StoreUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
-        return $this->user()->can('master-satuan-obat.' . ($isUpdate ? 'edit' : 'create'));
+
+        return $this->user()->can('master-satuan-obat.'.($isUpdate ? 'edit' : 'create'));
     }
 
     public function rules(): array
@@ -18,7 +19,7 @@ class StoreUpdateRequest extends FormRequest
         $id = $this->route('id');
 
         return [
-            'nama'      => [
+            'nama' => [
                 'required',
                 'string',
                 'max:50',
@@ -36,13 +37,13 @@ class StoreUpdateRequest extends FormRequest
     {
         return [
             'nama.required' => 'Nama satuan wajib diisi.',
-            'nama.unique'   => 'Nama satuan sudah digunakan.',
+            'nama.unique' => 'Nama satuan sudah digunakan.',
         ];
     }
 
     public function prepareForValidation(): void
     {
-        if (!$this->has('is_active')) {
+        if (! $this->has('is_active')) {
             $this->merge(['is_active' => true]);
         }
     }

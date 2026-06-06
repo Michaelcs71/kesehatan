@@ -26,7 +26,7 @@ trait HasCrudOperations
      */
     protected function handleGetData($request): array
     {
-        $params  = $request->validated();
+        $params = $request->validated();
         $service = $this->getService();
 
         return $service::getAll($params);
@@ -38,9 +38,9 @@ trait HasCrudOperations
     protected function handleShowData(string $id): JsonResponse
     {
         $service = $this->getService();
-        $data    = $service::getById($id);
+        $data = $service::getById($id);
 
-        if (!$data) {
+        if (! $data) {
             return $this->errorResponse('Data tidak ditemukan', 404);
         }
 
@@ -55,6 +55,7 @@ trait HasCrudOperations
         try {
             $data = $this->executeTransaction(function () use ($request) {
                 $service = $this->getService();
+
                 return $service::create($request->validated());
             });
 
@@ -72,10 +73,11 @@ trait HasCrudOperations
         try {
             $result = $this->executeTransaction(function () use ($request, $id) {
                 $service = $this->getService();
+
                 return $service::update($id, $request->validated());
             });
 
-            if (!$result) {
+            if (! $result) {
                 return $this->errorResponse('Data tidak ditemukan atau gagal diupdate', 404);
             }
 
@@ -92,9 +94,9 @@ trait HasCrudOperations
     {
         try {
             $service = $this->getService();
-            $result  = $service::delete($id);
+            $result = $service::delete($id);
 
-            if (!$result) {
+            if (! $result) {
                 return $this->errorResponse('Data tidak ditemukan', 404);
             }
 
@@ -112,9 +114,9 @@ trait HasCrudOperations
         $entityName = $this->getEntityName();
 
         $messages = [
-            'created' => ucfirst($entityName) . ' berhasil dibuat',
-            'updated' => ucfirst($entityName) . ' berhasil diupdate',
-            'deleted' => ucfirst($entityName) . ' berhasil dihapus',
+            'created' => ucfirst($entityName).' berhasil dibuat',
+            'updated' => ucfirst($entityName).' berhasil diupdate',
+            'deleted' => ucfirst($entityName).' berhasil dihapus',
         ];
 
         return $messages[$operation] ?? 'Operasi berhasil';

@@ -37,19 +37,19 @@ class PengingatMoLogRepository
 
         $query->search($search);
 
-        if (!empty($status)) {
+        if (! empty($status)) {
             $query->where('status', $status);
         }
 
-        if (!empty($jadwalId)) {
+        if (! empty($jadwalId)) {
             $query->where('id_jo', $jadwalId);
         }
 
-        if (!empty($tanggalStart) && !empty($tanggalEnd)) {
+        if (! empty($tanggalStart) && ! empty($tanggalEnd)) {
             $query->whereBetween('tgl_minum_obat', [$tanggalStart, $tanggalEnd]);
-        } elseif (!empty($tanggalStart)) {
+        } elseif (! empty($tanggalStart)) {
             $query->where('tgl_minum_obat', '>=', $tanggalStart);
-        } elseif (!empty($tanggalEnd)) {
+        } elseif (! empty($tanggalEnd)) {
             $query->where('tgl_minum_obat', '<=', $tanggalEnd);
         }
 
@@ -63,14 +63,14 @@ class PengingatMoLogRepository
         }
 
         // Role filter: PMO cuma lihat log pasien-nya
-        if (!empty($forPmoUserId)) {
+        if (! empty($forPmoUserId)) {
             $query->whereHas('jadwalMo.pasienPmo', function ($q) use ($forPmoUserId) {
                 $q->where('pmo_user_id', $forPmoUserId);
             });
         }
 
         // Role filter: Pasien cuma lihat log sendiri
-        if (!empty($forPasienUserId)) {
+        if (! empty($forPasienUserId)) {
             $query->whereHas('jadwalMo.pasienPmo', function ($q) use ($forPasienUserId) {
                 $q->where('id_user', $forPasienUserId);
             });
@@ -112,11 +112,11 @@ class PengingatMoLogRepository
             ]);
 
         if ($pmoUserId) {
-            $query->whereHas('pasienPmo', fn($q) => $q->where('pmo_user_id', $pmoUserId));
+            $query->whereHas('pasienPmo', fn ($q) => $q->where('pmo_user_id', $pmoUserId));
         }
 
         if ($pasienUserId) {
-            $query->whereHas('pasienPmo', fn($q) => $q->where('id_user', $pasienUserId));
+            $query->whereHas('pasienPmo', fn ($q) => $q->where('id_user', $pasienUserId));
         }
 
         return $query
@@ -124,9 +124,9 @@ class PengingatMoLogRepository
             ->get(['id', 'id_pasien_pmo', 'obat_id', 'nama_pasien', 'nama_pmo', 'jam_mulai', 'frekuensi_per_hari'])
             ->map(function ($j) {
                 $satuan = $j->obat?->satuan?->singkatan ?? $j->obat?->satuan?->nama;
-                $dosis  = $j->obat?->dosis_default ? " {$j->obat->dosis_default}" : '';
+                $dosis = $j->obat?->dosis_default ? " {$j->obat->dosis_default}" : '';
                 $satuanStr = $satuan ? " ({$satuan})" : '';
-                $obatLabel = ($j->obat?->nama ?? 'Obat dihapus') . $dosis . $satuanStr;
+                $obatLabel = ($j->obat?->nama ?? 'Obat dihapus').$dosis.$satuanStr;
 
                 // Generate slot jam dari jam_mulai + frekuensi (for client-side suggest)
                 $slots = [];
@@ -143,15 +143,15 @@ class PengingatMoLogRepository
                 }
 
                 return [
-                    'id'           => $j->id,
-                    'nama_pasien'  => $j->nama_pasien,
-                    'nama_pmo'     => $j->nama_pmo,
-                    'nama_obat'    => $j->obat?->nama ?? '-',
-                    'obat_label'   => $obatLabel,
-                    'jam_mulai'    => substr($j->jam_mulai ?? '', 0, 5),
-                    'frekuensi'    => $j->frekuensi_per_hari,
-                    'slot_jam'     => $slots,
-                    'label'        => $j->nama_pasien . ' - ' . $obatLabel,
+                    'id' => $j->id,
+                    'nama_pasien' => $j->nama_pasien,
+                    'nama_pmo' => $j->nama_pmo,
+                    'nama_obat' => $j->obat?->nama ?? '-',
+                    'obat_label' => $obatLabel,
+                    'jam_mulai' => substr($j->jam_mulai ?? '', 0, 5),
+                    'frekuensi' => $j->frekuensi_per_hari,
+                    'slot_jam' => $slots,
+                    'label' => $j->nama_pasien.' - '.$obatLabel,
                 ];
             })
             ->toArray();
@@ -174,7 +174,10 @@ class PengingatMoLogRepository
     {
         return DB::transaction(function () use ($id, $data) {
             $log = PengingatMoLog::find($id);
-            if (!$log) return false;
+            if (! $log) {
+                return false;
+            }
+
             return $log->update($data);
         });
     }
@@ -186,7 +189,10 @@ class PengingatMoLogRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $log = PengingatMoLog::find($id);
-            if (!$log) return false;
+            if (! $log) {
+                return false;
+            }
+
             return $log->update(['status' => 'nonaktif', 'updated_by' => $userId]);
         });
     }
@@ -198,7 +204,10 @@ class PengingatMoLogRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $log = PengingatMoLog::find($id);
-            if (!$log) return false;
+            if (! $log) {
+                return false;
+            }
+
             return $log->update(['status' => 'aktif', 'updated_by' => $userId]);
         });
     }
@@ -210,10 +219,13 @@ class PengingatMoLogRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $log = PengingatMoLog::find($id);
-            if (!$log) return false;
+            if (! $log) {
+                return false;
+            }
 
             $log->deleted_by = $userId;
             $log->save();
+
             return (bool) $log->delete();
         });
     }

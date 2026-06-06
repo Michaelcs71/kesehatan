@@ -142,44 +142,35 @@
         </li>
     @endcanany
 
-    {{-- ============ RIWAYAT ============ --}}
-    @can('riwayat.index')
-        <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('riwayat.*') ? 'active' : '' }}" href="#">
-                <span class="nav-icon"><i class="ri ri-history-line"></i></span> Riwayat
-            </a>
-        </li>
-    @endcan
-
     {{-- ============ KONTEN PUBLIK ============ --}}
     @canany(['konten-pengumuman.index', 'konten-edukasi.index', 'konten-galery.index'])
         <li class="nav-title">Konten Publik</li>
 
-        <li class="nav-group {{ request()->routeIs('admin.konten.*') ? 'show' : '' }}">
+        <li class="nav-group {{ request()->routeIs('konten-pengumuman.*') || request()->routeIs('konten-edukasi.*') || request()->routeIs('konten-galery.*') ? 'show' : '' }}">
             <a class="nav-link nav-group-toggle" href="#">
                 <span class="nav-icon"><i class="ri ri-global-line"></i></span> Konten
             </a>
             <ul class="nav-group-items">
                 @can('konten-pengumuman.index')
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.konten.pengumuman') ? 'active' : '' }}"
-                            href="{{ route('admin.konten.pengumuman') }}">
+                        <a class="nav-link {{ request()->routeIs('konten-pengumuman.*') ? 'active' : '' }}"
+                            href="{{ route('konten-pengumuman.index') }}">
                             <span class="nav-icon"><i class="ri ri-megaphone-line"></i></span> Pengumuman
                         </a>
                     </li>
                 @endcan
                 @can('konten-edukasi.index')
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.konten.edukasi') ? 'active' : '' }}"
-                            href="{{ route('admin.konten.edukasi') }}">
+                        <a class="nav-link {{ request()->routeIs('konten-edukasi.*') ? 'active' : '' }}"
+                            href="{{ route('konten-edukasi.index') }}">
                             <span class="nav-icon"><i class="ri ri-book-line"></i></span> Edukasi
                         </a>
                     </li>
                 @endcan
                 @can('konten-galery.index')
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.konten.galery') ? 'active' : '' }}"
-                            href="{{ route('admin.konten.galery') }}">
+                        <a class="nav-link {{ request()->routeIs('konten-galery.*') ? 'active' : '' }}"
+                            href="{{ route('konten-galery.index') }}">
                             <span class="nav-icon"><i class="ri ri-image-line"></i></span> Galery
                         </a>
                     </li>

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\PasienPmo;
+use App\Models\User;
 use App\Repos\PasienPmoRepository;
 use Illuminate\Support\Facades\Auth;
 
@@ -10,12 +11,12 @@ class PasienPmoService
 {
     public static function getAllMappings(array $params): array
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         // Default filter: kalau bukan admin/superadmin, cuma lihat mapping sendiri
         $pmoUserId = $params['pmo_user_id'] ?? null;
-        if (!$loggedInUser->isSuperadmin() && !$loggedInUser->isAdmin()) {
+        if (! $loggedInUser->isSuperadmin() && ! $loggedInUser->isAdmin()) {
             if ($loggedInUser->isPmo()) {
                 $pmoUserId = $loggedInUser->id;
             }
@@ -33,7 +34,7 @@ class PasienPmoService
 
         return [
             'TotalRows' => $data->total(),
-            'Rows'      => $data->items(),
+            'Rows' => $data->items(),
         ];
     }
 
@@ -42,6 +43,7 @@ class PasienPmoService
         if (empty($id) || in_array($id, ['create', 'edit'])) {
             return null;
         }
+
         return PasienPmoRepository::findMappingById($id);
     }
 
@@ -60,7 +62,7 @@ class PasienPmoService
      */
     public static function bulkCreate(array $data): array
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         // Kalau login sebagai PMO, paksa pmo_user_id = id sendiri
@@ -69,10 +71,10 @@ class PasienPmoService
         }
 
         $commonData = [
-            'jenis_pmo'     => $data['jenis_pmo'],
+            'jenis_pmo' => $data['jenis_pmo'],
             'tanggal_regis' => $data['tanggal_regis'],
-            'catatan'       => $data['catatan'] ?? null,
-            'created_by'    => $loggedInUser->id,
+            'catatan' => $data['catatan'] ?? null,
+            'created_by' => $loggedInUser->id,
         ];
 
         $created = PasienPmoRepository::bulkCreate(
@@ -82,7 +84,7 @@ class PasienPmoService
         );
 
         return [
-            'count'    => count($created),
+            'count' => count($created),
             'mappings' => $created,
         ];
     }
@@ -92,16 +94,16 @@ class PasienPmoService
      */
     public static function updateMapping(string $id, array $data): bool
     {
-        /** @var \App\Models\User $loggedInUser */
+        /** @var User $loggedInUser */
         $loggedInUser = Auth::user();
 
         $mapping = PasienPmoRepository::findMappingById($id);
-        if (!$mapping) {
+        if (! $mapping) {
             throw new \Exception('Mapping tidak ditemukan.');
         }
 
         // Kalau pasien diubah, cek apakah pasien baru sudah punya mapping aktif lain
-        if (!empty($data['id_user']) && $data['id_user'] !== $mapping->id_user) {
+        if (! empty($data['id_user']) && $data['id_user'] !== $mapping->id_user) {
             $hasActive = PasienPmo::where('id_user', $data['id_user'])
                 ->where('is_active', true)
                 ->where('id', '!=', $id)
@@ -134,11 +136,11 @@ class PasienPmoService
     public static function getStats(): array
     {
         return [
-            'total'    => PasienPmo::count(),
-            'active'   => PasienPmo::where('is_active', true)->count(),
+            'total' => PasienPmo::count(),
+            'active' => PasienPmo::where('is_active', true)->count(),
             'inactive' => PasienPmo::where('is_active', false)->count(),
             'keluarga' => PasienPmo::where('jenis_pmo', 'Keluarga')->where('is_active', true)->count(),
-            'kader'    => PasienPmo::where('jenis_pmo', 'Kader')->where('is_active', true)->count(),
+            'kader' => PasienPmo::where('jenis_pmo', 'Kader')->where('is_active', true)->count(),
         ];
     }
 }

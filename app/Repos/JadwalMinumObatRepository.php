@@ -2,10 +2,10 @@
 
 namespace App\Repos;
 
+use App\Enums\StatusObat;
 use App\Models\JadwalMinumObat;
 use App\Models\MasterObat;
 use App\Models\PasienPmo;
-use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -35,31 +35,31 @@ class JadwalMinumObatRepository
 
         $query->search($search);
 
-        if (!empty($status)) {
+        if (! empty($status)) {
             $query->where('status', $status);
         }
 
-        if (!empty($pasienPmoId)) {
+        if (! empty($pasienPmoId)) {
             $query->where('id_pasien_pmo', $pasienPmoId);
         }
 
-        if (!empty($obatId)) {
+        if (! empty($obatId)) {
             $query->where('obat_id', $obatId);
         }
 
-        if (!empty($createdBy)) {
+        if (! empty($createdBy)) {
             $query->where('created_by', $createdBy);
         }
 
         // Filter per role: PMO cuma lihat jadwal pasien-nya
-        if (!empty($forPmoUserId)) {
+        if (! empty($forPmoUserId)) {
             $query->whereHas('pasienPmo', function ($q) use ($forPmoUserId) {
                 $q->where('pmo_user_id', $forPmoUserId);
             });
         }
 
         // Filter per role: Pasien cuma lihat jadwal sendiri
-        if (!empty($forPasienUserId)) {
+        if (! empty($forPasienUserId)) {
             $query->whereHas('pasienPmo', function ($q) use ($forPasienUserId) {
                 $q->where('id_user', $forPasienUserId);
             });
@@ -111,10 +111,10 @@ class JadwalMinumObatRepository
             ->get(['id', 'id_user', 'pmo_user_id', 'nama_pasien', 'nama_pmo'])
             ->map(function ($mapping) {
                 return [
-                    'id'              => $mapping->id,
-                    'nama_pasien'     => $mapping->nama_pasien,
-                    'nama_pmo'        => $mapping->nama_pmo,
-                    'label'           => $mapping->nama_pasien . ' (PMO: ' . $mapping->nama_pmo . ')',
+                    'id' => $mapping->id,
+                    'nama_pasien' => $mapping->nama_pasien,
+                    'nama_pmo' => $mapping->nama_pmo,
+                    'label' => $mapping->nama_pasien.' (PMO: '.$mapping->nama_pmo.')',
                 ];
             })
             ->toArray();
@@ -129,7 +129,7 @@ class JadwalMinumObatRepository
             ->approved()
             ->with('satuan:id,nama,singkatan');
 
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->search($search);
         }
 
@@ -139,15 +139,16 @@ class JadwalMinumObatRepository
             ->get(['id', 'nama', 'dosis_default', 'satuan_id', 'aturan_minum'])
             ->map(function ($obat) {
                 $satuan = $obat->satuan?->singkatan ?? $obat->satuan?->nama;
-                $dosis  = $obat->dosis_default ? " {$obat->dosis_default}" : '';
+                $dosis = $obat->dosis_default ? " {$obat->dosis_default}" : '';
                 $satuanStr = $satuan ? " ({$satuan})" : '';
+
                 return [
-                    'id'            => $obat->id,
-                    'nama'          => $obat->nama,
+                    'id' => $obat->id,
+                    'nama' => $obat->nama,
                     'dosis_default' => $obat->dosis_default,
-                    'satuan'        => $satuan,
-                    'aturan_minum'  => $obat->aturan_minum,
-                    'label'         => $obat->nama . $dosis . $satuanStr,
+                    'satuan' => $satuan,
+                    'aturan_minum' => $obat->aturan_minum,
+                    'label' => $obat->nama.$dosis.$satuanStr,
                 ];
             })
             ->toArray();
@@ -156,9 +157,8 @@ class JadwalMinumObatRepository
     /**
      * Bulk create: 1 pasien-PMO mapping → multi obat dalam 1 transaction
      *
-     * @param string $pasienPmoId
-     * @param array $obatItems Array of ['obat_id', 'tgl_mulai', 'jam_mulai', 'frekuensi_per_hari', 'durasi_hari', 'catatan_dosis']
-     * @param array $auditData ['created_by']
+     * @param  array  $obatItems  Array of ['obat_id', 'tgl_mulai', 'jam_mulai', 'frekuensi_per_hari', 'durasi_hari', 'catatan_dosis']
+     * @param  array  $auditData  ['created_by']
      */
     public static function bulkCreate(string $pasienPmoId, array $obatItems, array $auditData): array
     {
@@ -167,10 +167,10 @@ class JadwalMinumObatRepository
 
             // Load mapping
             $mapping = PasienPmo::find($pasienPmoId);
-            if (!$mapping) {
+            if (! $mapping) {
                 throw new \Exception('Mapping pasien-PMO tidak ditemukan.');
             }
-            if (!$mapping->is_active) {
+            if (! $mapping->is_active) {
                 throw new \Exception('Mapping pasien-PMO tidak aktif.');
             }
 
@@ -180,21 +180,21 @@ class JadwalMinumObatRepository
 
             foreach ($obatItems as $item) {
                 $obat = $obats->get($item['obat_id']);
-                if (!$obat) {
+                if (! $obat) {
                     throw new \Exception("Obat dengan ID {$item['obat_id']} tidak ditemukan.");
                 }
 
                 $jadwal = JadwalMinumObat::create([
-                    'id_pasien_pmo'      => $mapping->id,
-                    'obat_id'            => $obat->id,
-                    'nama_pasien'        => $mapping->nama_pasien,
-                    'nama_pmo'           => $mapping->nama_pmo,
-                    'tgl_mulai'          => $item['tgl_mulai'],
-                    'jam_mulai'          => $item['jam_mulai'],
+                    'id_pasien_pmo' => $mapping->id,
+                    'obat_id' => $obat->id,
+                    'nama_pasien' => $mapping->nama_pasien,
+                    'nama_pmo' => $mapping->nama_pmo,
+                    'tgl_mulai' => $item['tgl_mulai'],
+                    'jam_mulai' => $item['jam_mulai'],
                     'frekuensi_per_hari' => $item['frekuensi_per_hari'],
-                    'catatan_dosis'      => $item['catatan_dosis'] ?? null,
-                    'status'             => 'aktif',
-                    'created_by'         => $auditData['created_by'] ?? null,
+                    'catatan_dosis' => $item['catatan_dosis'] ?? null,
+                    'status' => 'aktif',
+                    'created_by' => $auditData['created_by'] ?? null,
                 ]);
 
                 $created[] = $jadwal;
@@ -211,14 +211,16 @@ class JadwalMinumObatRepository
     {
         return DB::transaction(function () use ($id, $data) {
             $jadwal = JadwalMinumObat::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
 
             // Kalau pasien-pmo berubah, update snapshot
-            if (!empty($data['id_pasien_pmo']) && $data['id_pasien_pmo'] !== $jadwal->id_pasien_pmo) {
+            if (! empty($data['id_pasien_pmo']) && $data['id_pasien_pmo'] !== $jadwal->id_pasien_pmo) {
                 $mapping = PasienPmo::find($data['id_pasien_pmo']);
                 if ($mapping) {
                     $data['nama_pasien'] = $mapping->nama_pasien;
-                    $data['nama_pmo']    = $mapping->nama_pmo;
+                    $data['nama_pmo'] = $mapping->nama_pmo;
                 }
             }
 
@@ -233,10 +235,12 @@ class JadwalMinumObatRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $jadwal = JadwalMinumObat::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
 
             return $jadwal->update([
-                'status'     => 'nonaktif',
+                'status' => 'nonaktif',
                 'updated_by' => $userId,
             ]);
         });
@@ -249,10 +253,12 @@ class JadwalMinumObatRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $jadwal = JadwalMinumObat::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
 
             return $jadwal->update([
-                'status'     => 'aktif',
+                'status' => 'aktif',
                 'updated_by' => $userId,
             ]);
         });
@@ -265,10 +271,12 @@ class JadwalMinumObatRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $jadwal = JadwalMinumObat::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
 
             return $jadwal->update([
-                'status'     => 'selesai',
+                'status' => 'selesai',
                 'updated_by' => $userId,
             ]);
         });
@@ -281,7 +289,9 @@ class JadwalMinumObatRepository
     {
         return DB::transaction(function () use ($id, $userId) {
             $jadwal = JadwalMinumObat::find($id);
-            if (!$jadwal) return false;
+            if (! $jadwal) {
+                return false;
+            }
 
             $jadwal->deleted_by = $userId;
             $jadwal->save();
@@ -298,14 +308,14 @@ class JadwalMinumObatRepository
     {
         return DB::transaction(function () use ($data, $userId) {
             return MasterObat::create([
-                'nama'         => $data['nama'],
-                'satuan_id'    => $data['satuan_id'] ?? null,
-                'kategori_id'  => $data['kategori_id'] ?? null,
+                'nama' => $data['nama'],
+                'satuan_id' => $data['satuan_id'] ?? null,
+                'kategori_id' => $data['kategori_id'] ?? null,
                 'dosis_default' => $data['dosis_default'] ?? null,
-                'status'       => \App\Enums\StatusObat::APPROVED->value,
-                'created_by'   => $userId,
-                'verified_by'  => $userId,    // auto-verified by creator
-                'verified_at'  => now(),
+                'status' => StatusObat::APPROVED->value,
+                'created_by' => $userId,
+                'verified_by' => $userId,    // auto-verified by creator
+                'verified_at' => now(),
             ]);
         });
     }

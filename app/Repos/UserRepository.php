@@ -25,7 +25,7 @@ class UserRepository
         $query = User::query()->with(['biodata:id,user_id,nik,jenis_kelamin,tempat_lahir,tanggal_lahir']);
 
         // Visibility per role
-        if ($loggedInUser && !$loggedInUser->isSuperadmin()) {
+        if ($loggedInUser && ! $loggedInUser->isSuperadmin()) {
             $query->where(function (Builder $q) use ($loggedInUser) {
                 $q->where('id', $loggedInUser->id)
                     ->orWhereIn('role', ['pmo', 'pasien', 'pengunjung']);
@@ -74,24 +74,24 @@ class UserRepository
     {
         return DB::transaction(function () use ($userData, $biodataData) {
             // Hash password kalau ada
-            if (!empty($userData['password'])) {
+            if (! empty($userData['password'])) {
                 $userData['password'] = Hash::make($userData['password']);
             }
 
             // Auto-generate username dari nama kalau tidak di-set
-            if (empty($userData['username']) && !empty($userData['name'])) {
+            if (empty($userData['username']) && ! empty($userData['name'])) {
                 $userData['username'] = self::generateUsername($userData['name']);
             }
 
             $user = User::create($userData);
 
             // Sync Spatie role
-            if (!empty($userData['role'])) {
+            if (! empty($userData['role'])) {
                 $user->syncRoles([$userData['role']]);
             }
 
             // Save biodata kalau role pasien/pmo & data biodata ada
-            if (in_array($userData['role'] ?? null, ['pasien', 'pmo']) && !empty($biodataData)) {
+            if (in_array($userData['role'] ?? null, ['pasien', 'pmo']) && ! empty($biodataData)) {
                 $user->biodata()->create($biodataData);
             }
 
@@ -106,12 +106,12 @@ class UserRepository
     {
         return DB::transaction(function () use ($id, $userData, $biodataData) {
             $user = User::with('biodata')->find($id);
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
 
             // Hash password kalau di-set baru, kalau kosong jangan diupdate
-            if (!empty($userData['password'])) {
+            if (! empty($userData['password'])) {
                 $userData['password'] = Hash::make($userData['password']);
             } else {
                 unset($userData['password']);
@@ -126,7 +126,7 @@ class UserRepository
             $user->update($userData);
 
             // Sync Spatie role kalau ada
-            if (!empty($userData['role'])) {
+            if (! empty($userData['role'])) {
                 $user->syncRoles([$userData['role']]);
             }
 
@@ -135,13 +135,13 @@ class UserRepository
             // - Kalau role baru bukan pasien/pmo: hapus biodata (kalau ada)
             $newRequiresBiodata = in_array($newRole, ['pasien', 'pmo']);
 
-            if ($newRequiresBiodata && !empty($biodataData)) {
+            if ($newRequiresBiodata && ! empty($biodataData)) {
                 if ($user->biodata) {
                     $user->biodata->update($biodataData);
                 } else {
                     $user->biodata()->create($biodataData);
                 }
-            } elseif (!$newRequiresBiodata && $user->biodata) {
+            } elseif (! $newRequiresBiodata && $user->biodata) {
                 $user->biodata->delete();
             }
 
@@ -156,9 +156,10 @@ class UserRepository
     {
         return DB::transaction(function () use ($id) {
             $user = User::find($id);
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
+
             return (bool) $user->delete();
         });
     }
@@ -170,10 +171,11 @@ class UserRepository
     {
         return DB::transaction(function () use ($id, $newPassword) {
             $user = User::find($id);
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
             $user->password = Hash::make($newPassword);
+
             return $user->save();
         });
     }
@@ -189,9 +191,10 @@ class UserRepository
         $username = $base;
         $counter = 1;
         while (User::where('username', $username)->exists()) {
-            $username = $base . $counter;
+            $username = $base.$counter;
             $counter++;
         }
+
         return $username;
     }
 }

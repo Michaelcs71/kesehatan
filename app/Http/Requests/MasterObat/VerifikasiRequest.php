@@ -28,7 +28,7 @@ class VerifikasiRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status.required'             => 'Status verifikasi wajib dipilih.',
+            'status.required' => 'Status verifikasi wajib dipilih.',
             'catatan_verifikasi.required' => 'Alasan penolakan wajib diisi.',
         ];
     }

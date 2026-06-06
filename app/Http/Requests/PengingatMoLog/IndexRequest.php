@@ -14,14 +14,14 @@ class IndexRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search'         => 'nullable|string|max:255',
-            'status'         => 'nullable|string|in:aktif,nonaktif',
-            'id_jo'          => 'nullable|uuid',
-            'tgl_start'      => 'nullable|date',
-            'tgl_end'        => 'nullable|date',
+            'search' => 'nullable|string|max:255',
+            'status' => 'nullable|string|in:aktif,nonaktif',
+            'id_jo' => 'nullable|uuid',
+            'tgl_start' => 'nullable|date',
+            'tgl_end' => 'nullable|date',
             'patuh_kategori' => 'nullable|string|in:tepat_waktu,terlambat,sangat_terlambat',
-            'pagenum'        => 'nullable|integer|min:0',
-            'pagesize'       => 'nullable|integer|min:1|max:100',
+            'pagenum' => 'nullable|integer|min:0',
+            'pagesize' => 'nullable|integer|min:1|max:100',
         ];
     }
 }

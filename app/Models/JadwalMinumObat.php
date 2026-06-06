@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class JadwalMinumObat extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'jadwal_minum_obats';
 
@@ -33,7 +33,7 @@ class JadwalMinumObat extends Model
     protected function casts(): array
     {
         return [
-            'tgl_mulai'          => 'date',
+            'tgl_mulai' => 'date',
             'frekuensi_per_hari' => 'integer',
 
         ];
@@ -85,7 +85,10 @@ class JadwalMinumObat extends Model
 
     public function scopeSearch(Builder $q, ?string $term): Builder
     {
-        if (blank($term)) return $q;
+        if (blank($term)) {
+            return $q;
+        }
+
         return $q->where(function ($qq) use ($term) {
             $qq->where('nama_pasien', 'like', "%{$term}%")
                 ->orWhere('nama_pmo', 'like', "%{$term}%")
@@ -102,7 +105,10 @@ class JadwalMinumObat extends Model
      */
     public function getJamMulaiFormatAttribute(): string
     {
-        if (!$this->jam_mulai) return '-';
+        if (! $this->jam_mulai) {
+            return '-';
+        }
+
         return substr($this->jam_mulai, 0, 5);  // "08:00:00" → "08:00"
     }
 
@@ -112,7 +118,10 @@ class JadwalMinumObat extends Model
      */
     public function getIntervalJamAttribute(): float
     {
-        if (!$this->frekuensi_per_hari || $this->frekuensi_per_hari <= 0) return 0;
+        if (! $this->frekuensi_per_hari || $this->frekuensi_per_hari <= 0) {
+            return 0;
+        }
+
         return round(24 / $this->frekuensi_per_hari, 1);
     }
 
@@ -122,7 +131,9 @@ class JadwalMinumObat extends Model
      */
     public function getSlotJamHarianAttribute(): array
     {
-        if (!$this->jam_mulai || !$this->frekuensi_per_hari) return [];
+        if (! $this->jam_mulai || ! $this->frekuensi_per_hari) {
+            return [];
+        }
 
         $slots = [];
         $interval = 24 / $this->frekuensi_per_hari;
@@ -140,18 +151,16 @@ class JadwalMinumObat extends Model
         return $slots;
     }
 
-
-
     /**
      * Status label dengan badge color
      */
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'aktif'    => 'Aktif',
+            'aktif' => 'Aktif',
             'nonaktif' => 'Nonaktif',
-            'selesai'  => 'Selesai',
-            default    => ucfirst($this->status),
+            'selesai' => 'Selesai',
+            default => ucfirst($this->status),
         };
     }
 }

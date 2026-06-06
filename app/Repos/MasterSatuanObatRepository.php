@@ -46,13 +46,14 @@ class MasterSatuanObatRepository
 
     public static function createMasterSatuanObat(array $data): MasterSatuanObat
     {
-        return DB::transaction(fn() => MasterSatuanObat::create($data));
+        return DB::transaction(fn () => MasterSatuanObat::create($data));
     }
 
     public static function updateMasterSatuanObat(string $id, array $data): bool
     {
         return DB::transaction(function () use ($id, $data) {
             $item = MasterSatuanObat::find($id);
+
             return $item ? $item->update($data) : false;
         });
     }
@@ -61,6 +62,7 @@ class MasterSatuanObatRepository
     {
         return DB::transaction(function () use ($id) {
             $item = MasterSatuanObat::find($id);
+
             return $item ? (bool) $item->delete() : false;
         });
     }

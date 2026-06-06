@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\StatusObat;
 use App\Models\MasterObat;
+use App\Models\User;
 use App\Repos\MasterObatRepository;
 use App\Services\Concerns\HasStandardizedMethods;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class MasterObatService
      */
     public static function getAllObats(array $params): array
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $data = MasterObatRepository::getAllObats(
@@ -43,7 +44,7 @@ class MasterObatService
 
         return [
             'TotalRows' => $data->total(),
-            'Rows'      => $data->items(),
+            'Rows' => $data->items(),
         ];
     }
 
@@ -68,7 +69,7 @@ class MasterObatService
      */
     public static function createObat(array $data, ?Request $request = null): MasterObat
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         // Upload foto kalau ada
@@ -78,7 +79,7 @@ class MasterObatService
 
         // Auto-set status & verifikasi berdasarkan role
         if ($user->isAdmin()) {
-            $data['status']      = StatusObat::APPROVED->value;
+            $data['status'] = StatusObat::APPROVED->value;
             $data['verified_by'] = $user->id;
             $data['verified_at'] = now();
         } else {
@@ -96,11 +97,11 @@ class MasterObatService
     public static function updateObat(string $id, array $data, ?Request $request = null): bool
     {
         $obat = MasterObatRepository::findObatById($id);
-        if (!$obat) {
+        if (! $obat) {
             return false;
         }
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         // Handle foto baru
@@ -112,11 +113,11 @@ class MasterObatService
         }
 
         // Kalau pasien/pmo edit obat yg ditolak, auto-resubmit jadi pending
-        if (!$user->isAdmin() && $obat->isRejected()) {
-            $data['status']             = StatusObat::PENDING->value;
+        if (! $user->isAdmin() && $obat->isRejected()) {
+            $data['status'] = StatusObat::PENDING->value;
             $data['catatan_verifikasi'] = null;
-            $data['verified_by']        = null;
-            $data['verified_at']        = null;
+            $data['verified_by'] = null;
+            $data['verified_at'] = null;
         }
 
         return MasterObatRepository::updateObat($id, $data);
@@ -128,7 +129,7 @@ class MasterObatService
     public static function deleteObat(string $id): bool
     {
         $obat = MasterObatRepository::findObatById($id);
-        if (!$obat) {
+        if (! $obat) {
             return false;
         }
 
@@ -145,9 +146,9 @@ class MasterObatService
     public static function verifyObat(string $id, array $data): bool
     {
         return MasterObatRepository::updateObat($id, [
-            'status'             => $data['status'],
-            'verified_by'        => Auth::id(),
-            'verified_at'        => now(),
+            'status' => $data['status'],
+            'verified_by' => Auth::id(),
+            'verified_at' => now(),
             'catatan_verifikasi' => $data['catatan_verifikasi'] ?? null,
         ]);
     }
@@ -158,10 +159,10 @@ class MasterObatService
     public static function getStats(): array
     {
         return [
-            'pending'  => MasterObat::pending()->count(),
+            'pending' => MasterObat::pending()->count(),
             'approved' => MasterObat::approved()->count(),
             'rejected' => MasterObat::rejected()->count(),
-            'total'    => MasterObat::count(),
+            'total' => MasterObat::count(),
         ];
     }
 }
