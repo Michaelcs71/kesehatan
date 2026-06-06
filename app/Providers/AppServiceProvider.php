@@ -5,13 +5,11 @@ namespace App\Providers;
 use App\Services\Whatsapp\CloudApiWhatsAppSender;
 use App\Services\Whatsapp\LogWhatsAppSender;
 use App\Services\Whatsapp\WhatsAppSender;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         $this->app->bind(WhatsAppSender::class, function () {
@@ -22,11 +20,10 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }
