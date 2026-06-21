@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PengaturanPengingat extends Model
 {
-    use HasFactory, HasUuids;
+    use HasUuids;
 
     protected $table = 'pengaturan_pengingat';
 
@@ -21,7 +20,6 @@ class PengaturanPengingat extends Model
         'cgd_aktif',
         'cgd_dibuat_aktif',
         'cgd_jam_h1',
-        'updated_by',
     ];
 
     protected function casts(): array
