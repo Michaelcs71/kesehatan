@@ -46,15 +46,18 @@
                             <i class="ri ri-user-line me-2"></i> Profil Saya
                         </a>
                     </li>
-                    @if (auth()->user()->isSuperadmin())
+                    @if (auth()->user()->isSuperadmin() || \App\Services\ImpersonationService::sedangImpersonate())
                         <li><hr class="dropdown-divider my-1"></li>
                         <li><h6 class="dropdown-header text-uppercase small text-muted mb-0">Lihat sebagai</h6></li>
                         @foreach (['admin' => 'Admin', 'pmo' => 'PMO', 'pasien' => 'Pasien'] as $rv => $lbl)
                             <li>
                                 <form method="POST" action="{{ route('impersonate.start', $rv) }}" class="m-0">
                                     @csrf
-                                    <button type="submit" class="dropdown-item py-2">
+                                    <button type="submit" class="dropdown-item py-2 d-flex align-items-center">
                                         <i class="ri ri-eye-line me-2"></i> {{ $lbl }}
+                                        @if (auth()->user()->role?->value === $rv)
+                                            <span class="badge bg-success ms-auto">aktif</span>
+                                        @endif
                                     </button>
                                 </form>
                             </li>
