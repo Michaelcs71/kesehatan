@@ -22,20 +22,24 @@ class PengingatTickService
      */
     public static function tentukanAksi(PengingatKejadian $k, Carbon $now): array
     {
-        $batasAkhir = (int) config('pengingat.batas_akhir_menit');
-        $intervalUlang = (int) config('pengingat.interval_ulang_menit');
-        $waPasienMnt = (int) config('pengingat.wa_pasien_setelah_menit');
-        $waPmoMnt = (int) config('pengingat.wa_pmo_setelah_menit');
+        $s = PengaturanPengingatService::get();
+        $jumlah = (int) $s->mo_jumlah;                       // N
+        $interval = max(1, (int) $s->mo_interval_menit);     // X
+        $pmoMulaiKe = (int) $s->mo_pmo_mulai_ke;             // M
 
         $selisih = intdiv($now->getTimestamp() - $k->waktu_jadwal->getTimestamp(), 60);
 
-        if ($selisih > $batasAkhir) {
+        // Nomor pengingat ke-berapa (1-based)
+        $nomor = intdiv($selisih, $interval) + 1;
+
+        if ($nomor > $jumlah) {
             return ['keputusan' => 'terlewat', 'aksi' => []];
         }
 
+        // Throttle: jangan kirim ulang sebelum interval berlalu sejak terakhir
         if ($k->terakhir_dikirim_pada) {
             $sejakTerakhir = intdiv($now->getTimestamp() - $k->terakhir_dikirim_pada->getTimestamp(), 60);
-            if ($sejakTerakhir < $intervalUlang) {
+            if ($sejakTerakhir < $interval) {
                 return ['keputusan' => 'skip', 'aksi' => []];
             }
         }
@@ -45,22 +49,13 @@ class PengingatTickService
 
         $aksi = [];
 
-        // --- Kanal pasien ---
-        if ($selisih < $waPasienMnt) {
-            // Sebelum ambang WA: push bila ada, kalau tidak ada push → WA sejak menit-0.
-            $aksi[] = $pasienPunyaPush
-                ? ['kanal' => 'push', 'target' => 'pasien']
-                : ['kanal' => 'whatsapp', 'target' => 'pasien'];
-        } else {
-            // Sudah lewat ambang WA: kirim WA; push tetap diulang bila ada.
-            if ($pasienPunyaPush) {
-                $aksi[] = ['kanal' => 'push', 'target' => 'pasien'];
-            }
-            $aksi[] = ['kanal' => 'whatsapp', 'target' => 'pasien'];
-        }
+        // --- Kanal pasien: tiap pengingat, push bila ada, selain itu WA ---
+        $aksi[] = $pasienPunyaPush
+            ? ['kanal' => 'push', 'target' => 'pasien']
+            : ['kanal' => 'whatsapp', 'target' => 'pasien'];
 
-        // --- Eskalasi PMO ---
-        if ($selisih >= $waPmoMnt && ! $k->eskalasi_pmo && $k->user_pmo_id) {
+        // --- PMO: ikut tiap pengingat sejak nomor >= M ---
+        if ($k->user_pmo_id && $nomor >= $pmoMulaiKe) {
             $aksi[] = ['kanal' => 'whatsapp', 'target' => 'pmo'];
             if ($pmoPunyaPush) {
                 $aksi[] = ['kanal' => 'push', 'target' => 'pmo'];
@@ -72,12 +67,14 @@ class PengingatTickService
 
     public static function jalankan(): void
     {
-        if (config('pengingat.aktif.mo')) {
+        $s = PengaturanPengingatService::get();
+
+        if ($s->mo_aktif) {
             self::materialisasiMo();
         }
         self::proses();
 
-        if (config('pengingat.aktif.cgd')) {
+        if ($s->cgd_aktif) {
             self::prosesCgd();
         }
     }
@@ -86,7 +83,8 @@ class PengingatTickService
     {
         $now = Carbon::now();
         $hariIni = $now->toDateString();
-        $batas = (int) config('pengingat.batas_akhir_menit');
+        $s = PengaturanPengingatService::get();
+        $batas = (int) $s->mo_jumlah * max(1, (int) $s->mo_interval_menit);
 
         JadwalMinumObat::query()->active()
             ->with('pasienPmo')
