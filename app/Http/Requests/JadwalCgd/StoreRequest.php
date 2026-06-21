@@ -20,6 +20,8 @@ class StoreRequest extends FormRequest
             'puasa' => 'required|string|in:Wajib,Tidak',
             'tempat' => 'required|string|max:255',
             'catatan' => 'nullable|string|max:1000',
+            'peserta' => 'nullable|array',
+            'peserta.*' => 'string|exists:pasien_pmos,id',
         ];
     }
 
@@ -36,6 +38,8 @@ class StoreRequest extends FormRequest
             'puasa.required' => 'Status puasa wajib dipilih.',
             'puasa.in' => 'Status puasa harus Wajib atau Tidak.',
             'tempat.required' => 'Tempat pelaksanaan wajib diisi.',
+            'peserta.array' => 'Daftar peserta tidak valid.',
+            'peserta.*.exists' => 'Salah satu pasien peserta tidak ditemukan.',
         ];
     }
 }

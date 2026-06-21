@@ -400,6 +400,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:jadwal-cgd.create')->group(function () {
             Route::get('/create', [JadwalCgdController::class, 'create'])->name('create');
             Route::post('/', [JadwalCgdController::class, 'store'])->name('store');
+            Route::get('/options/pasien-pmo', [JadwalCgdController::class, 'pasienPmoOptions'])->name('options.pasien-pmo');
         });
 
         // SHOW - semua role bisa lihat detail

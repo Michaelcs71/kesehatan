@@ -21,6 +21,8 @@ class UpdateRequest extends FormRequest
             'tempat' => 'required|string|max:255',
             'catatan' => 'nullable|string|max:1000',
             'status' => 'required|string|in:aktif,nonaktif,selesai',
+            'peserta' => 'nullable|array',
+            'peserta.*' => 'string|exists:pasien_pmos,id',
         ];
     }
 
@@ -36,6 +38,8 @@ class UpdateRequest extends FormRequest
             'puasa.required' => 'Status puasa wajib dipilih.',
             'tempat.required' => 'Tempat pelaksanaan wajib diisi.',
             'status.required' => 'Status wajib dipilih.',
+            'peserta.array' => 'Daftar peserta tidak valid.',
+            'peserta.*.exists' => 'Salah satu pasien peserta tidak ditemukan.',
         ];
     }
 }

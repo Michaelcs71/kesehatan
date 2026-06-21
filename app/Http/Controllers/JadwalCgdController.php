@@ -151,4 +151,11 @@ class JadwalCgdController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
     }
+
+    // ===== Options =====
+
+    public function pasienPmoOptions(): JsonResponse
+    {
+        return response()->json(['data' => JadwalCgdService::getPasienPmoOptions()]);
+    }
 }
