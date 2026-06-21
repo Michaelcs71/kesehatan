@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\JadwalCgdController;
-use App\Http\Controllers\PengaturanPengingatController;
 use App\Http\Controllers\JadwalMinumObatController;
 use App\Http\Controllers\KonfirmasiPengingatController;
 use App\Http\Controllers\KontenEdukasiController;
@@ -12,6 +11,7 @@ use App\Http\Controllers\MasterKategoriObatController;
 use App\Http\Controllers\MasterObatController;
 use App\Http\Controllers\MasterSatuanObatController;
 use App\Http\Controllers\PasienPmoController;
+use App\Http\Controllers\PengaturanPengingatController;
 use App\Http\Controllers\PengingatCgdLogController;
 use App\Http\Controllers\PengingatMoLogController;
 use App\Http\Controllers\ProfileController;
