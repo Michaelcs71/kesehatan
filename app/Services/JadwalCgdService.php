@@ -35,18 +35,24 @@ class JadwalCgdService
 
     public static function createJadwal(array $data): JadwalCgd
     {
+        $peserta = $data['peserta'] ?? [];
+        unset($data['peserta']);
+
         $data['tgl_input'] = now()->format('Y-m-d');
         $data['created_by'] = Auth::id();
         $data['status'] = $data['status'] ?? 'aktif';
 
-        return JadwalCgdRepository::createJadwal($data);
+        return JadwalCgdRepository::createJadwal($data, $peserta);
     }
 
     public static function updateJadwal(string $id, array $data): bool
     {
+        $peserta = array_key_exists('peserta', $data) ? ($data['peserta'] ?? []) : null;
+        unset($data['peserta']);
+
         $data['updated_by'] = Auth::id();
 
-        return JadwalCgdRepository::updateJadwal($id, $data);
+        return JadwalCgdRepository::updateJadwal($id, $data, $peserta);
     }
 
     public static function deactivate(string $id): bool
@@ -72,6 +78,11 @@ class JadwalCgdService
     public static function getUpcoming(int $limit = 5): array
     {
         return JadwalCgdRepository::getUpcoming($limit);
+    }
+
+    public static function getPasienPmoOptions(): array
+    {
+        return JadwalCgdRepository::getPasienPmoOptions();
     }
 
     public static function getStats(): array

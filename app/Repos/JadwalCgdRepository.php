@@ -3,6 +3,7 @@
 namespace App\Repos;
 
 use App\Models\JadwalCgd;
+use App\Models\PasienPmo;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -49,32 +50,76 @@ class JadwalCgdRepository
         return JadwalCgd::with([
             'creator:id,name',
             'updater:id,name',
+            'peserta:id,jadwal_cgd_id,id_pasien_pmo,nama_pasien,nama_pmo,dikirim_dibuat_pada,dikirim_h1_pada',
         ])->find($id);
     }
 
     /**
      * Create jadwal baru
      */
-    public static function createJadwal(array $data): JadwalCgd
+    public static function createJadwal(array $data, array $pesertaIds = []): JadwalCgd
     {
-        return DB::transaction(function () use ($data) {
-            return JadwalCgd::create($data);
+        return DB::transaction(function () use ($data, $pesertaIds) {
+            $jadwal = JadwalCgd::create($data);
+            self::syncPeserta($jadwal, $pesertaIds);
+
+            return $jadwal;
         });
     }
 
     /**
      * Update jadwal
      */
-    public static function updateJadwal(string $id, array $data): bool
+    public static function updateJadwal(string $id, array $data, ?array $pesertaIds = null): bool
     {
-        return DB::transaction(function () use ($id, $data) {
+        return DB::transaction(function () use ($id, $data, $pesertaIds) {
             $jadwal = JadwalCgd::find($id);
             if (! $jadwal) {
                 return false;
             }
 
-            return $jadwal->update($data);
+            $ok = $jadwal->update($data);
+
+            if ($pesertaIds !== null) {
+                self::syncPeserta($jadwal, $pesertaIds);
+            }
+
+            return $ok;
         });
+    }
+
+    /**
+     * Sinkronkan peserta jadwal CGD: tambah yang baru (snapshot nama,
+     * penanda kirim kosong), hapus yang tak dipilih lagi. Peserta yang
+     * tetap ada TIDAK disentuh (penanda kirim dipertahankan).
+     *
+     * @param  array<int,string>  $pesertaIds  daftar id pasien_pmo
+     */
+    public static function syncPeserta(JadwalCgd $jadwal, array $pesertaIds): void
+    {
+        $pasienPmos = PasienPmo::whereIn('id', $pesertaIds)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('id');
+
+        $existing = $jadwal->peserta()->get()->keyBy('id_pasien_pmo');
+
+        // Hapus peserta yang tidak dipilih lagi.
+        $toRemove = $existing->keys()->diff($pasienPmos->keys());
+        if ($toRemove->isNotEmpty()) {
+            $jadwal->peserta()->whereIn('id_pasien_pmo', $toRemove->all())->delete();
+        }
+
+        // Tambah peserta baru.
+        foreach ($pasienPmos as $id => $pp) {
+            if (! $existing->has($id)) {
+                $jadwal->peserta()->create([
+                    'id_pasien_pmo' => $pp->id,
+                    'nama_pasien' => $pp->nama_pasien,
+                    'nama_pmo' => $pp->nama_pmo,
+                ]);
+            }
+        }
     }
 
     /**
@@ -159,6 +204,24 @@ class JadwalCgdRepository
             ->with('creator:id,name')
             ->limit($limit)
             ->get()
+            ->toArray();
+    }
+
+    /**
+     * Opsi peserta (semua pasien_pmo aktif) untuk multi-select form CGD.
+     */
+    public static function getPasienPmoOptions(): array
+    {
+        return PasienPmo::query()
+            ->where('is_active', true)
+            ->orderBy('nama_pasien')
+            ->get(['id', 'nama_pasien', 'nama_pmo'])
+            ->map(fn ($pp) => [
+                'id' => $pp->id,
+                'nama_pasien' => $pp->nama_pasien,
+                'nama_pmo' => $pp->nama_pmo,
+                'label' => $pp->nama_pasien.' (PMO: '.($pp->nama_pmo ?? '-').')',
+            ])
             ->toArray();
     }
 
