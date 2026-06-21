@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Jobs\KirimPengingatCgdJob;
 use App\Jobs\KirimPengingatJob;
+use App\Models\JadwalCgd;
+use App\Models\JadwalCgdPeserta;
 use App\Models\JadwalMinumObat;
 use App\Models\PengingatKejadian;
 use App\Models\PushSubscription;
@@ -73,6 +76,10 @@ class PengingatTickService
             self::materialisasiMo();
         }
         self::proses();
+
+        if (config('pengingat.aktif.cgd')) {
+            self::prosesCgd();
+        }
     }
 
     public static function materialisasiMo(): void
@@ -130,5 +137,41 @@ class PengingatTickService
                 Log::error('[pengingat] gagal memproses kejadian', ['id' => $k->id, 'error' => $e->getMessage()]);
             }
         }
+    }
+
+    /**
+     * Kirim pengingat CGD: sekali saat jadwal aktif (fase 'dibuat') &
+     * sekali H-1 (fase 'h1'). Idempoten via penanda waktu di peserta.
+     */
+    public static function prosesCgd(): void
+    {
+        $now = Carbon::now();
+        $jamH1 = (string) config('pengingat.cgd.jam_h1', '17:00');
+
+        JadwalCgd::query()
+            ->where('status', 'aktif')
+            ->whereDate('tgl_jadwal_cgd', '>=', $now->toDateString())
+            ->with('peserta')
+            ->chunk(100, function ($jadwals) use ($now, $jamH1) {
+                foreach ($jadwals as $jadwal) {
+                    $waktuH1 = Carbon::parse($jadwal->tgl_jadwal_cgd->toDateString().' '.$jamH1)->subDay();
+
+                    foreach ($jadwal->peserta as $peserta) {
+                        if ($peserta->dikirim_dibuat_pada === null) {
+                            self::dispatchCgd($peserta, 'dibuat', 'dikirim_dibuat_pada', $now);
+                        }
+
+                        if ($peserta->dikirim_h1_pada === null && $now->greaterThanOrEqualTo($waktuH1)) {
+                            self::dispatchCgd($peserta, 'h1', 'dikirim_h1_pada', $now);
+                        }
+                    }
+                }
+            });
+    }
+
+    private static function dispatchCgd(JadwalCgdPeserta $peserta, string $fase, string $kolom, Carbon $now): void
+    {
+        KirimPengingatCgdJob::dispatch($peserta->id, $fase);
+        $peserta->forceFill([$kolom => $now])->save();
     }
 }

@@ -9,7 +9,7 @@ class PengingatTick extends Command
 {
     protected $signature = 'pengingat:tick';
 
-    protected $description = 'Materialisasi & proses pengingat MO yang jatuh tempo (jalan tiap menit)';
+    protected $description = 'Materialisasi & proses pengingat MO + CGD yang jatuh tempo (jalan tiap menit)';
 
     public function handle(): int
     {
