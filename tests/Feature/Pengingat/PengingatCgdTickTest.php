@@ -88,4 +88,20 @@ class PengingatCgdTickTest extends TestCase
 
         Queue::assertNothingPushed();
     }
+
+    public function test_fase_h1_tidak_dikirim_untuk_jadwal_hari_ini(): void
+    {
+        Queue::fake();
+        // Jadwal hari ini (2026-06-21). H-1 window (2026-06-20 17:00) sudah lewat.
+        // Notif "dibuat" sudah terkirim → hanya h1 yang berpotensi dikirm.
+        // Harapan: h1 TIDAK dikirim karena event-nya hari ini (bukan masa depan).
+        Carbon::setTestNow(Carbon::parse('2026-06-21 18:00:00'));
+        $peserta = $this->buatPeserta('2026-06-21');
+        $peserta->forceFill(['dikirim_dibuat_pada' => now()->subHours(2)])->save();
+
+        PengingatTickService::prosesCgd();
+
+        Queue::assertNotPushed(fn (KirimPengingatCgdJob $j) => $j->fase === 'h1');
+        $this->assertNull($peserta->refresh()->dikirim_h1_pada);
+    }
 }

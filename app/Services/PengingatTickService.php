@@ -161,7 +161,11 @@ class PengingatTickService
                             self::dispatchCgd($peserta, 'dibuat', 'dikirim_dibuat_pada', $now);
                         }
 
-                        if ($peserta->dikirim_h1_pada === null && $now->greaterThanOrEqualTo($waktuH1)) {
+                        if (
+                            $peserta->dikirim_h1_pada === null
+                            && $now->greaterThanOrEqualTo($waktuH1)
+                            && $jadwal->tgl_jadwal_cgd->toDateString() > $now->toDateString()
+                        ) {
                             self::dispatchCgd($peserta, 'h1', 'dikirim_h1_pada', $now);
                         }
                     }
