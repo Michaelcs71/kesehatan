@@ -98,6 +98,19 @@
                         </div>
                     </div>
                 </x-card>
+
+                <div class="mt-3"></div>
+
+                {{-- ============ PESERTA ============ --}}
+                <x-card title="Peserta & Pengingat" icon="ri-group-line">
+                    <label for="peserta" class="form-label">Pasien Peserta</label>
+                    <select id="peserta" name="peserta[]" class="form-select" multiple size="8"></select>
+                    <div class="invalid-feedback"></div>
+                    <small class="text-muted d-block mt-1">
+                        Pasien terpilih akan menerima pengingat (pasien &amp; PMO): sekali saat jadwal
+                        aktif dan sekali H-1. Tahan Ctrl/Cmd untuk memilih lebih dari satu.
+                    </small>
+                </x-card>
             </div>
 
             {{-- ============ KOLOM KANAN ============ --}}
@@ -158,6 +171,7 @@
                     STORE: '{{ route('jadwal-cgd.store') }}',
                     UPDATE: '{{ isset($id) ? route('jadwal-cgd.update', $id) : '' }}',
                     SHOW_DATA: '{{ isset($id) ? route('jadwal-cgd.show-data', $id) : '' }}',
+                    OPTIONS_PESERTA: '{{ route('jadwal-cgd.options.pasien-pmo') }}',
                 },
             };
 
@@ -167,10 +181,23 @@
             init();
 
             async function init() {
+                await loadPesertaOptions();
                 if (CONFIG.IS_EDIT) {
                     await loadExistingData();
                 }
                 $form.on('submit', submitForm);
+            }
+
+            async function loadPesertaOptions() {
+                try {
+                    const res = await $.ajax({ url: CONFIG.ROUTES.OPTIONS_PESERTA, method: 'GET' });
+                    const $sel = $('#peserta').empty();
+                    (res.data || []).forEach(function(p) {
+                        $sel.append(new Option(p.label, p.id));
+                    });
+                } catch (e) {
+                    // opsi gagal dimuat — biarkan select kosong
+                }
             }
 
             async function loadExistingData() {
@@ -194,6 +221,10 @@
                     } else if (data.puasa === 'Tidak') {
                         $('#puasa_tidak').prop('checked', true);
                     }
+
+                    // Preselect peserta
+                    const ids = (data.peserta || []).map(function(p) { return p.id_pasien_pmo; });
+                    $('#peserta').val(ids);
                 } catch (e) {
                     Swal.fire({
                         title: 'Error!',
@@ -219,6 +250,7 @@
                     puasa: $('input[name="puasa"]:checked').val() || '',
                     tempat: $('#tempat').val().trim(),
                     catatan: $('#catatan').val().trim() || null,
+                    peserta: $('#peserta').val() || [],
                 };
 
                 if (CONFIG.IS_EDIT) {

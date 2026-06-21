@@ -78,6 +78,31 @@
                     <p class="form-control-plaintext mb-0" id="detail-catatan" style="white-space: pre-line;">-</p>
                 </x-card>
             </div>
+
+            {{-- ============ PESERTA ============ --}}
+            <div class="mt-3">
+                <x-card title="Peserta & Pengingat" icon="ri-group-line">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0" id="tabelPeserta">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nama Pasien</th>
+                                    <th>PMO</th>
+                                    <th>Pengingat "Dibuat"</th>
+                                    <th>Pengingat "H-1"</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelPesertaBody">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </x-card>
+            </div>
         </div>
 
         {{-- ============ SIDEBAR KANAN ============ --}}
@@ -260,6 +285,9 @@
                 $('#detail-updater').text(d.updater?.name || '-');
                 $('#detail-updated_at').text(d.updated_at ? formatDateTime(d.updated_at) : '-');
 
+                // Peserta
+                renderPeserta(d.peserta || []);
+
                 renderHeaderActions(d);
             }).fail(function(xhr) {
                 Swal.fire({
@@ -268,6 +296,34 @@
                     icon: 'error',
                 }).then(() => window.location.href = CONFIG.ROUTES.INDEX);
             });
+
+            function renderPeserta(peserta) {
+                const $tbody = $('#tabelPesertaBody');
+                if (!peserta.length) {
+                    $tbody.html(
+                        '<tr><td colspan="4" class="text-center text-muted py-3">Belum ada peserta terdaftar.</td></tr>'
+                    );
+                    return;
+                }
+
+                const badgeTerkirim =
+                    '<span class="badge bg-success-subtle text-success"><i class="ri ri-check-line"></i> Terkirim</span>';
+                const badgeMenunggu =
+                    '<span class="badge bg-secondary-subtle text-secondary"><i class="ri ri-time-line"></i> Menunggu</span>';
+
+                const rows = peserta.map(function(p) {
+                    const badgeDibuat = p.dikirim_dibuat_pada ? badgeTerkirim : badgeMenunggu;
+                    const badgeH1 = p.dikirim_h1_pada ? badgeTerkirim : badgeMenunggu;
+                    return '<tr>' +
+                        '<td>' + ($('<span>').text(p.nama_pasien).html() || '-') + '</td>' +
+                        '<td>' + ($('<span>').text(p.nama_pmo || '-').html()) + '</td>' +
+                        '<td>' + badgeDibuat + '</td>' +
+                        '<td>' + badgeH1 + '</td>' +
+                        '</tr>';
+                });
+
+                $tbody.html(rows.join(''));
+            }
 
             function renderHeaderActions(d) {
                 const actions = [];
