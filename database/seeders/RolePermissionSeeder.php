@@ -117,6 +117,10 @@ class RolePermissionSeeder extends Seeder
         'konten-galery.delete',
 
         'laporan-kepatuhan.index',
+
+        // ===== PENGATURAN PENGINGAT =====
+        'pengaturan-pengingat.index',
+        'pengaturan-pengingat.update',
     ];
 
     private array $rolePermissions = [
@@ -272,6 +276,9 @@ class RolePermissionSeeder extends Seeder
             'konten-galery.delete',
             // Laporan
             'laporan-kepatuhan.index',
+            // Pengaturan
+            'pengaturan-pengingat.index',
+            'pengaturan-pengingat.update',
         ],
 
         'superadmin' => '*',

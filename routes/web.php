@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\JadwalCgdController;
+use App\Http\Controllers\PengaturanPengingatController;
 use App\Http\Controllers\JadwalMinumObatController;
 use App\Http\Controllers\KonfirmasiPengingatController;
 use App\Http\Controllers\KontenEdukasiController;
@@ -434,6 +435,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->where('id', '[0-9a-f\-]+')
             ->middleware('permission:jadwal-cgd.delete');
     });
+});
+
+/*
+|--------------------------------------------------------------------------
+| PENGATURAN PENGINGAT
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified'])->prefix('pengaturan-pengingat')->name('pengaturan-pengingat.')->group(function () {
+    Route::middleware('permission:pengaturan-pengingat.index')
+        ->get('/', [PengaturanPengingatController::class, 'index'])->name('index');
+
+    Route::middleware('permission:pengaturan-pengingat.update')
+        ->match(['put', 'patch'], '/', [PengaturanPengingatController::class, 'update'])->name('update');
 });
 
 /*
