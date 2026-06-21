@@ -70,16 +70,14 @@ Mesin membaca lewat service ini, bukan `config()`, untuk nilai dinamis.
   - bila `nomor > N` (N = `mo_jumlah`) → `terlewat`.
   - throttle tetap: bila `selisih sejak terakhir < X` → `skip`.
   - kirim ke pasien: push bila ada `PushSubscription`, selain itu WA — tiap pengingat.
-  - PMO ikut bila `nomor >= M` (M = `mo_pmo_mulai_ke`) dan `! eskalasi_pmo` belum… →
-    kirim WA PMO (+ push bila ada). (Catatan: PMO boleh dikirimi berulang tiap pengingat
-    sejak ke-M, atau sekali — lihat "Detail perilaku" di bawah.)
+  - PMO ikut dikirimi (WA, + push bila ada) pada **setiap** pengingat sejak `nomor >= M`
+    (M = `mo_pmo_mulai_ke`) — konsisten dengan pasien yang juga tiap pengingat.
   - berhenti saat status dikonfirmasi (logika existing).
 - **CGD `prosesCgd`**: baca `cgd_jam_h1`; bila `! cgd_dibuat_aktif` → lewati fase 'dibuat'
   (tetap kirim H-1). Logika 2x + skip same-day H-1 tetap.
 
-Detail perilaku PMO: PMO dikirimi **setiap** pengingat sejak nomor ≥ M (konsisten dgn
-"pasien tiap kali"), karena model lama `eskalasi_pmo` (sekali) tidak lagi dipakai sebagai
-ambang. Field `eskalasi_pmo` boleh tetap di-set true saat pertama kirim PMO untuk audit.
+Field `eskalasi_pmo` tetap di-set true saat pertama kali kirim PMO (untuk audit), tapi
+tidak lagi dipakai sebagai ambang penghenti — ambang PMO kini murni `nomor >= M`.
 
 ### 4. Menu & UI
 
