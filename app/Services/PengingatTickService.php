@@ -145,18 +145,20 @@ class PengingatTickService
     public static function prosesCgd(): void
     {
         $now = Carbon::now();
-        $jamH1 = (string) config('pengingat.cgd.jam_h1', '17:00');
+        $s = PengaturanPengingatService::get();
+        $jamH1 = (string) $s->cgd_jam_h1;
+        $dibuatAktif = (bool) $s->cgd_dibuat_aktif;
 
         JadwalCgd::query()
             ->where('status', 'aktif')
             ->whereDate('tgl_jadwal_cgd', '>=', $now->toDateString())
             ->with('peserta')
-            ->chunk(100, function ($jadwals) use ($now, $jamH1) {
+            ->chunk(100, function ($jadwals) use ($now, $jamH1, $dibuatAktif) {
                 foreach ($jadwals as $jadwal) {
                     $waktuH1 = Carbon::parse($jadwal->tgl_jadwal_cgd->toDateString().' '.$jamH1)->subDay();
 
                     foreach ($jadwal->peserta as $peserta) {
-                        if ($peserta->dikirim_dibuat_pada === null) {
+                        if ($dibuatAktif && $peserta->dikirim_dibuat_pada === null) {
                             self::dispatchCgd($peserta, 'dibuat', 'dikirim_dibuat_pada', $now);
                         }
 
