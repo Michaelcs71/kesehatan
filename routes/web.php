@@ -462,7 +462,9 @@ Route::prefix('impersonate')->name('impersonate.')->group(function () {
     Route::middleware('auth')
         ->post('/leave', [ImpersonationController::class, 'kembali'])->name('leave');
 
-    Route::middleware(['auth', 'verified', 'role:superadmin'])
+    // Otorisasi superadmin/operator dilakukan di controller (saat ber-POV current
+    // user bukan superadmin, jadi tak bisa pakai middleware role:superadmin di sini).
+    Route::middleware('auth')
         ->post('/{role}', [ImpersonationController::class, 'mulai'])->name('start')
         ->where('role', 'admin|pmo|pasien');
 });

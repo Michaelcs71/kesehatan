@@ -50,10 +50,10 @@ class ImpersonationTest extends TestCase
 
     public function test_service_menolak_role_invalid(): void
     {
-        $this->buatUser('superadmin');
+        $super = $this->buatUser('superadmin');
         $this->expectException(\InvalidArgumentException::class);
 
-        ImpersonationService::mulai('superadmin');
+        ImpersonationService::mulaiSebagai($super, 'superadmin');
     }
 
     public function test_wakil_kosong_redirect_dengan_error(): void
@@ -113,16 +113,21 @@ class ImpersonationTest extends TestCase
         $this->assertNull(session(ImpersonationService::SESSION_KEY));
     }
 
-    public function test_service_tolak_mulai_saat_sudah_impersonate(): void
+    public function test_bisa_pindah_role_langsung_saat_pov(): void
     {
         $super = $this->buatUser('superadmin');
         $this->buatUser('pasien');
-        $this->buatUser('admin');
-        $this->actingAs($super);
+        $admin = $this->buatUser('admin');
 
-        ImpersonationService::mulai('pasien');
+        // mulai POV sebagai pasien
+        $this->actingAs($super)->post('/impersonate/pasien');
 
-        $this->expectException(\LogicException::class);
-        ImpersonationService::mulai('admin');
+        // pindah langsung ke admin tanpa kembali ke superadmin
+        $res = $this->post('/impersonate/admin');
+
+        $res->assertRedirect(route('admin.dashboard'));
+        $this->assertAuthenticatedAs($admin);
+        // titik kembali tetap superadmin asli, bukan pasien
+        $this->assertSame($super->id, session(ImpersonationService::SESSION_KEY));
     }
 }

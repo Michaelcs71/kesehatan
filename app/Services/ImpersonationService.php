@@ -14,19 +14,16 @@ class ImpersonationService
     private const ROLE_BOLEH = ['admin', 'pmo', 'pasien'];
 
     /**
-     * Mulai mode POV: jadi user wakil dari role tujuan.
+     * Mulai/pindah mode POV: jadi user wakil dari role tujuan, dengan
+     * $operator (superadmin asli) sebagai titik kembali.
      *
      * @throws \InvalidArgumentException role tidak valid
      * @throws \RuntimeException tak ada user aktif untuk role itu
      */
-    public static function mulai(string $roleValue): User
+    public static function mulaiSebagai(User $operator, string $roleValue): User
     {
         if (! in_array($roleValue, self::ROLE_BOLEH, true)) {
             throw new \InvalidArgumentException('Role tidak valid untuk mode POV.');
-        }
-
-        if (self::sedangImpersonate()) {
-            throw new \LogicException('Sudah dalam mode impersonate; panggil kembali() terlebih dahulu.');
         }
 
         $target = User::query()
@@ -39,12 +36,11 @@ class ImpersonationService
             throw new \RuntimeException('Belum ada user aktif untuk role tersebut.');
         }
 
-        $asalId = Auth::id();
         Auth::login($target);
-        session([self::SESSION_KEY => $asalId]);
+        session([self::SESSION_KEY => $operator->id]);
 
         Log::info('[impersonate] mulai', [
-            'oleh' => $asalId, 'menjadi' => $target->id, 'role' => $roleValue,
+            'oleh' => $operator->id, 'menjadi' => $target->id, 'role' => $roleValue,
         ]);
 
         return $target;

@@ -9,15 +9,17 @@ class ImpersonationController extends Controller
 {
     public function mulai(string $role): RedirectResponse
     {
-        $user = auth()->user();
+        // Operator = superadmin asli: saat ber-POV ambil dari session, selain itu current user.
+        $operator = ImpersonationService::sedangImpersonate()
+            ? ImpersonationService::impersonator()
+            : auth()->user();
 
-        // Belt-and-suspenders: route sudah digate role:superadmin.
-        if (! $user || ! $user->isSuperadmin() || ImpersonationService::sedangImpersonate()) {
+        if (! $operator || ! $operator->isSuperadmin()) {
             abort(403);
         }
 
         try {
-            $target = ImpersonationService::mulai($role);
+            $target = ImpersonationService::mulaiSebagai($operator, $role);
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
