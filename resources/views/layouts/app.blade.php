@@ -54,6 +54,23 @@
 
         @include('partials.header')
 
+        @if (\App\Services\ImpersonationService::sedangImpersonate())
+            <div class="alert alert-warning border-0 rounded-0 mb-0 d-flex align-items-center justify-content-between px-3 py-2">
+                <span class="small">
+                    <i class="ri ri-eye-line me-1"></i>
+                    <strong>Mode POV</strong> — Anda melihat sebagai
+                    <strong>{{ auth()->user()->name }}</strong>
+                    ({{ auth()->user()->role?->label() }}).
+                </span>
+                <form method="POST" action="{{ route('impersonate.leave') }}" class="m-0">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-dark">
+                        <i class="ri ri-arrow-go-back-line me-1"></i> Kembali ke Super Admin
+                    </button>
+                </form>
+            </div>
+        @endif
+
         <div class="body flex-grow-1 px-3 py-4">
             <div class="container-fluid">
                 @hasSection('page-header')

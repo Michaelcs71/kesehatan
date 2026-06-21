@@ -46,6 +46,20 @@
                             <i class="ri ri-user-line me-2"></i> Profil Saya
                         </a>
                     </li>
+                    @if (auth()->user()->isSuperadmin())
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><h6 class="dropdown-header text-uppercase small text-muted mb-0">Lihat sebagai</h6></li>
+                        @foreach (['admin' => 'Admin', 'pmo' => 'PMO', 'pasien' => 'Pasien'] as $rv => $lbl)
+                            <li>
+                                <form method="POST" action="{{ route('impersonate.start', $rv) }}" class="m-0">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item py-2">
+                                        <i class="ri ri-eye-line me-2"></i> {{ $lbl }}
+                                    </button>
+                                </form>
+                            </li>
+                        @endforeach
+                    @endif
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
                         <form method="POST" action="{{ route('logout') }}" class="m-0">
