@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\JadwalCgdController;
 use App\Http\Controllers\JadwalMinumObatController;
 use App\Http\Controllers\KonfirmasiPengingatController;
@@ -448,6 +449,22 @@ Route::middleware(['auth', 'verified'])->prefix('pengaturan-pengingat')->name('p
 
     Route::middleware('permission:pengaturan-pengingat.update')
         ->match(['put', 'patch'], '/', [PengaturanPengingatController::class, 'update'])->name('update');
+});
+
+/*
+|--------------------------------------------------------------------------
+| IMPERSONATE / POV SWITCHER
+|--------------------------------------------------------------------------
+*/
+Route::prefix('impersonate')->name('impersonate.')->group(function () {
+    // leave: HANYA 'auth' (tanpa 'verified') agar superadmin selalu bisa keluar
+    // walau user target belum terverifikasi.
+    Route::middleware('auth')
+        ->post('/leave', [ImpersonationController::class, 'kembali'])->name('leave');
+
+    Route::middleware(['auth', 'verified', 'role:superadmin'])
+        ->post('/{role}', [ImpersonationController::class, 'mulai'])->name('start')
+        ->where('role', 'admin|pmo|pasien');
 });
 
 /*
