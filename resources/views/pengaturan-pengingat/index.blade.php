@@ -105,7 +105,6 @@
                 $submitBtn.prop('disabled', true).find('.spinner-border').removeClass('d-none');
 
                 const data = {
-                    _method: 'PUT',
                     mo_aktif: $('#mo_aktif').is(':checked'),
                     mo_jumlah: parseInt($('#mo_jumlah').val(), 10),
                     mo_interval_menit: parseInt($('#mo_interval_menit').val(), 10),
@@ -120,7 +119,7 @@
                 try {
                     const res = await $.ajax({
                         url: UPDATE_URL,
-                        method: 'POST',
+                        method: 'PUT',
                         contentType: 'application/json',
                         headers: { 'X-CSRF-TOKEN': csrfToken },
                         data: JSON.stringify(data),
