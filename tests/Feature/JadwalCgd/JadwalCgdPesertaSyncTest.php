@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\JadwalCgd;
 
-use App\Models\JadwalCgd;
 use App\Models\PasienPmo;
 use App\Models\User;
 use App\Services\JadwalCgdService;
@@ -88,5 +87,37 @@ class JadwalCgdPesertaSyncTest extends TestCase
         ]);
 
         $this->assertCount(1, $jadwal->refresh()->peserta);
+    }
+
+    public function test_peserta_yang_tetap_tidak_kehilangan_timestamp_kirim(): void
+    {
+        $this->actingAs($this->admin());
+        $a = PasienPmo::factory()->create();
+        $b = PasienPmo::factory()->create();
+
+        $jadwal = JadwalCgdService::createJadwal($this->dataJadwal([$a->id, $b->id]));
+
+        // Tandai timestamp kirim peserta `a` ke nilai yang diketahui.
+        $waktuKirim = now()->subDay()->startOfMinute();
+        $jadwal->peserta()->where('id_pasien_pmo', $a->id)->update(['dikirim_dibuat_pada' => $waktuKirim]);
+
+        // Sync ulang dengan daftar yang sama — `a` dan `b` keduanya tetap.
+        JadwalCgdService::updateJadwal($jadwal->id, [
+            'tgl_jadwal_cgd' => $jadwal->tgl_jadwal_cgd->toDateString(),
+            'jam_mulai' => '07:00',
+            'jam_berakhir' => '10:00',
+            'puasa' => 'Wajib',
+            'tempat' => 'Posyandu Uji',
+            'status' => 'aktif',
+            'peserta' => [$a->id, $b->id],
+        ]);
+
+        $pesertaA = $jadwal->refresh()->peserta->firstWhere('id_pasien_pmo', $a->id);
+        $this->assertNotNull($pesertaA, 'Peserta a harus tetap ada setelah sync');
+        $this->assertNotNull($pesertaA->dikirim_dibuat_pada, 'Timestamp kirim peserta a tidak boleh hilang');
+        $this->assertTrue(
+            $waktuKirim->eq($pesertaA->dikirim_dibuat_pada),
+            "Timestamp kirim peserta a harus tetap {$waktuKirim} bukan {$pesertaA->dikirim_dibuat_pada}"
+        );
     }
 }
