@@ -7,6 +7,7 @@ use App\Jobs\KirimPengingatJob;
 use App\Models\JadwalCgd;
 use App\Models\JadwalCgdPeserta;
 use App\Models\JadwalMinumObat;
+use App\Models\PengaturanPengingat;
 use App\Models\PengingatKejadian;
 use App\Models\PushSubscription;
 use App\Repos\PengingatKejadianRepository;
@@ -20,9 +21,9 @@ class PengingatTickService
      *
      * @return array{keputusan:string,aksi:array<int,array{kanal:string,target:string}>}
      */
-    public static function tentukanAksi(PengingatKejadian $k, Carbon $now): array
+    public static function tentukanAksi(PengingatKejadian $k, Carbon $now, ?PengaturanPengingat $pengaturan = null): array
     {
-        $s = PengaturanPengingatService::get();
+        $s = $pengaturan ?? PengaturanPengingatService::get();
         $jumlah = (int) $s->mo_jumlah;                       // N
         $interval = max(1, (int) $s->mo_interval_menit);     // X
         $pmoMulaiKe = (int) $s->mo_pmo_mulai_ke;             // M
@@ -45,7 +46,6 @@ class PengingatTickService
         }
 
         $pasienPunyaPush = PushSubscription::where('user_id', $k->user_pasien_id)->exists();
-        $pmoPunyaPush = $k->user_pmo_id && PushSubscription::where('user_id', $k->user_pmo_id)->exists();
 
         $aksi = [];
 
@@ -57,7 +57,7 @@ class PengingatTickService
         // --- PMO: ikut tiap pengingat sejak nomor >= M ---
         if ($k->user_pmo_id && $nomor >= $pmoMulaiKe) {
             $aksi[] = ['kanal' => 'whatsapp', 'target' => 'pmo'];
-            if ($pmoPunyaPush) {
+            if (PushSubscription::where('user_id', $k->user_pmo_id)->exists()) {
                 $aksi[] = ['kanal' => 'push', 'target' => 'pmo'];
             }
         }
@@ -70,20 +70,20 @@ class PengingatTickService
         $s = PengaturanPengingatService::get();
 
         if ($s->mo_aktif) {
-            self::materialisasiMo();
+            self::materialisasiMo($s);
         }
-        self::proses();
+        self::proses($s);
 
         if ($s->cgd_aktif) {
             self::prosesCgd();
         }
     }
 
-    public static function materialisasiMo(): void
+    public static function materialisasiMo(?PengaturanPengingat $s = null): void
     {
+        $s ??= PengaturanPengingatService::get();
         $now = Carbon::now();
         $hariIni = $now->toDateString();
-        $s = PengaturanPengingatService::get();
         $batas = (int) $s->mo_jumlah * max(1, (int) $s->mo_interval_menit);
 
         JadwalMinumObat::query()->active()
@@ -96,7 +96,7 @@ class PengingatTickService
                         $waktu = Carbon::parse($hariIni.' '.$slot.':00');
 
                         $selisih = intdiv($now->getTimestamp() - $waktu->getTimestamp(), 60);
-                        if ($selisih < 0 || $selisih > $batas) {
+                        if ($selisih < 0 || $selisih >= $batas) {
                             continue;
                         }
 
@@ -110,13 +110,14 @@ class PengingatTickService
             });
     }
 
-    public static function proses(): void
+    public static function proses(?PengaturanPengingat $s = null): void
     {
+        $s ??= PengaturanPengingatService::get();
         $now = Carbon::now();
 
         foreach (PengingatKejadianRepository::menunggu() as $k) {
             try {
-                $hasil = self::tentukanAksi($k, $now);
+                $hasil = self::tentukanAksi($k, $now, $s);
 
                 if ($hasil['keputusan'] === 'terlewat') {
                     PengingatKejadianRepository::tandaiTerlewat($k);

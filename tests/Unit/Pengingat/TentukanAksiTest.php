@@ -114,4 +114,40 @@ class TentukanAksiTest extends TestCase
         $this->assertSame('kirim', PengingatTickService::tentukanAksi($k, $this->jadwal->copy()->addMinutes(10))['keputusan']);
         $this->assertSame('terlewat', PengingatTickService::tentukanAksi($k, $this->jadwal->copy()->addMinutes(20))['keputusan']);
     }
+
+    public function test_pengingat_terakhir_masih_kirim(): void
+    {
+        // N=4, X=15 → nomor=4 saat selisih=45; harus 'kirim', bukan 'terlewat'
+        $k = $this->kejadian();
+
+        $hasil = PengingatTickService::tentukanAksi($k, $this->jadwal->copy()->addMinutes(45));
+
+        $this->assertSame('kirim', $hasil['keputusan']);
+    }
+
+    public function test_pmo_punya_push_dapat_push_dan_wa(): void
+    {
+        // N=4, X=15, M=3 → menit 30 = nomor 3 >= M; PMO harus dapat WA+push
+        $k = $this->kejadian();
+        $this->beriPush($k->user_pmo_id);
+
+        $hasil = PengingatTickService::tentukanAksi($k, $this->jadwal->copy()->addMinutes(30));
+
+        $this->assertContains(['kanal' => 'whatsapp', 'target' => 'pmo'], $hasil['aksi']);
+        $this->assertContains(['kanal' => 'push', 'target' => 'pmo'], $hasil['aksi']);
+    }
+
+    public function test_pmo_mulai_ke_kustom_dihormati(): void
+    {
+        // Ubah M=2; PMO harus absen di nomor=1 (menit 0) dan hadir di nomor=2 (menit 15)
+        PengaturanPengingat::query()->update(['mo_pmo_mulai_ke' => 2]);
+
+        $k = $this->kejadian();
+
+        $hasilNomor1 = PengingatTickService::tentukanAksi($k, $this->jadwal->copy()->addMinutes(0));
+        $this->assertNotContains('pmo', array_column($hasilNomor1['aksi'], 'target'));
+
+        $hasilNomor2 = PengingatTickService::tentukanAksi($k, $this->jadwal->copy()->addMinutes(15));
+        $this->assertContains('pmo', array_column($hasilNomor2['aksi'], 'target'));
+    }
 }
