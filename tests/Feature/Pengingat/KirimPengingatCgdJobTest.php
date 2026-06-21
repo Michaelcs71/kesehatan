@@ -8,6 +8,7 @@ use App\Models\JadwalCgdPeserta;
 use App\Models\PasienPmo;
 use App\Models\PengingatKirimLog;
 use App\Models\User;
+use App\Services\WebPush\WebPushSender;
 use App\Services\Whatsapp\WhatsAppSender;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
@@ -34,7 +35,7 @@ class KirimPengingatCgdJobTest extends TestCase
         $wa->shouldReceive('kirimTemplate')->twice()->andReturnTrue();
         $this->app->instance(WhatsAppSender::class, $wa);
 
-        (new KirimPengingatCgdJob($peserta->id, 'dibuat'))->handle($wa, app(\App\Services\WebPush\WebPushSender::class));
+        (new KirimPengingatCgdJob($peserta->id, 'dibuat'))->handle($wa, app(WebPushSender::class));
 
         $this->assertSame(2, PengingatKirimLog::where('peserta_id', $peserta->id)->count());
         $this->assertSame(1, PengingatKirimLog::where('peserta_id', $peserta->id)->where('target', 'pmo')->count());
@@ -53,7 +54,7 @@ class KirimPengingatCgdJobTest extends TestCase
         $wa->shouldNotReceive('kirimTemplate');
         $this->app->instance(WhatsAppSender::class, $wa);
 
-        (new KirimPengingatCgdJob($peserta->id, 'dibuat'))->handle($wa, app(\App\Services\WebPush\WebPushSender::class));
+        (new KirimPengingatCgdJob($peserta->id, 'dibuat'))->handle($wa, app(WebPushSender::class));
 
         $this->assertSame(0, PengingatKirimLog::where('peserta_id', $peserta->id)->count());
     }
