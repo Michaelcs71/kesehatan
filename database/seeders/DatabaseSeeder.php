@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,                  // Bikin 4 default users
             RolePermissionSeeder::class,        // Bikin roles + permissions Spatie
             UserRoleAssignmentSeeder::class,    // Assign Spatie role ke 4 users
+            PengaturanPengingatSeeder::class,   // Baris default pengaturan pengingat
             KontenSeeder::class,                // Contoh konten publik (pengumuman, edukasi, galeri)
         ]);
     }
