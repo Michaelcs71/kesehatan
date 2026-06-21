@@ -34,6 +34,21 @@ class PengaturanPengingatRouteTest extends TestCase
         $this->assertSame('18:00', PengaturanPengingat::first()->cgd_jam_h1);
     }
 
+    public function test_update_via_patch_berhasil(): void
+    {
+        $res = $this->actingAs($this->superadmin())->patchJson(route('pengaturan-pengingat.update'), [
+            'mo_aktif' => true,
+            'mo_jumlah' => 5,
+            'mo_interval_menit' => 20,
+            'mo_pmo_mulai_ke' => 2,
+            'cgd_aktif' => true,
+            'cgd_dibuat_aktif' => false,
+            'cgd_jam_h1' => '18:00',
+        ]);
+
+        $res->assertOk()->assertJson(['success' => true]);
+    }
+
     public function test_validasi_pmo_mulai_ke_tidak_boleh_lebih_dari_jumlah(): void
     {
         $res = $this->actingAs($this->superadmin())->putJson(route('pengaturan-pengingat.update'), [
