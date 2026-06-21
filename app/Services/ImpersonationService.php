@@ -25,6 +25,10 @@ class ImpersonationService
             throw new \InvalidArgumentException('Role tidak valid untuk mode POV.');
         }
 
+        if (self::sedangImpersonate()) {
+            throw new \LogicException('Sudah dalam mode impersonate; panggil kembali() terlebih dahulu.');
+        }
+
         $target = User::query()
             ->where('role', $roleValue)
             ->where('is_active', true)
@@ -36,8 +40,8 @@ class ImpersonationService
         }
 
         $asalId = Auth::id();
-        session([self::SESSION_KEY => $asalId]);
         Auth::login($target);
+        session([self::SESSION_KEY => $asalId]);
 
         Log::info('[impersonate] mulai', [
             'oleh' => $asalId, 'menjadi' => $target->id, 'role' => $roleValue,
@@ -47,20 +51,26 @@ class ImpersonationService
     }
 
     /** Kembali ke superadmin asli. Aman bila key sudah hilang. */
-    public static function kembali(): void
+    public static function kembali(): bool
     {
         $asalId = session(self::SESSION_KEY);
-        session()->forget(self::SESSION_KEY);
-
         if (! $asalId) {
-            return;
+            return false;
         }
 
         $asal = User::find($asalId);
-        if ($asal) {
-            Auth::login($asal);
-            Log::info('[impersonate] kembali', ['ke' => $asal->id]);
+        if (! $asal) {
+            session()->forget(self::SESSION_KEY);
+            Log::warning('[impersonate] kembali: user asal tidak ditemukan', ['id' => $asalId]);
+
+            return false;
         }
+
+        Auth::login($asal);
+        session()->forget(self::SESSION_KEY);
+        Log::info('[impersonate] kembali', ['ke' => $asal->id]);
+
+        return true;
     }
 
     public static function sedangImpersonate(): bool

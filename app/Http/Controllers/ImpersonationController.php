@@ -32,7 +32,12 @@ class ImpersonationController extends Controller
             return redirect()->route('dashboard');
         }
 
-        ImpersonationService::kembali();
+        if (! ImpersonationService::kembali()) {
+            auth()->logout();
+
+            return redirect()->route('login')
+                ->with('error', 'Akun Super Admin asal tidak ditemukan. Silakan login ulang.');
+        }
 
         return redirect()->route(auth()->user()->homeRoute())
             ->with('success', 'Kembali ke akun Super Admin.');

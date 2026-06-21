@@ -95,4 +95,34 @@ class ImpersonationTest extends TestCase
         $res->assertRedirect(route('pasien.dashboard'));
         $this->assertAuthenticatedAs($pasien);
     }
+
+    public function test_kembali_saat_superadmin_asal_terhapus_logout_aman(): void
+    {
+        $super = $this->buatUser('superadmin');
+        $this->buatUser('pasien');
+
+        $this->actingAs($super)->post('/impersonate/pasien');
+
+        // superadmin asal terhapus di tengah sesi POV
+        User::where('id', $super->id)->delete();
+
+        $res = $this->post('/impersonate/leave');
+
+        $res->assertRedirect(route('login'));
+        $this->assertGuest();
+        $this->assertNull(session(ImpersonationService::SESSION_KEY));
+    }
+
+    public function test_service_tolak_mulai_saat_sudah_impersonate(): void
+    {
+        $super = $this->buatUser('superadmin');
+        $this->buatUser('pasien');
+        $this->buatUser('admin');
+        $this->actingAs($super);
+
+        ImpersonationService::mulai('pasien');
+
+        $this->expectException(\LogicException::class);
+        ImpersonationService::mulai('admin');
+    }
 }
