@@ -14,7 +14,12 @@ return [
 
     'aktif' => [
         'mo' => true,
-        'cgd' => false, // menyusul
+        'cgd' => true,
+    ],
+
+    'cgd' => [
+        // Jam pengiriman pengingat H-1 (sehari sebelum tgl_jadwal_cgd).
+        'jam_h1' => env('PENGINGAT_CGD_JAM_H1', '17:00'),
     ],
 
     'vapid' => [
@@ -29,6 +34,7 @@ return [
             'token' => env('WA_CLOUD_TOKEN'),
             'phone_id' => env('WA_CLOUD_PHONE_ID'),
             'template_mo' => env('WA_TEMPLATE_MO', 'pengingat_obat'),
+            'template_cgd' => env('WA_TEMPLATE_CGD', 'pengingat_cgd'),
             'lang' => env('WA_TEMPLATE_LANG', 'id'),
             'base_url' => env('WA_CLOUD_BASE_URL', 'https://graph.facebook.com/v21.0'),
         ],
