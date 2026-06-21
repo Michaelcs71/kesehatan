@@ -13,8 +13,10 @@ class PengingatKirimLog extends Model
 
     protected $fillable = [
         'kejadian_id',
+        'peserta_id',
         'kanal',
         'target',
+        'fase',
         'status',
         'error',
     ];
