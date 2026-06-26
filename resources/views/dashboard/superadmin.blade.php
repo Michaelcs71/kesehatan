@@ -283,6 +283,8 @@
     </div>
 
     {{-- ============ ROW 2: COMPLIANCE + TOP 5 PASIEN ============ --}}
+    {{-- TODO: Compliance chart menunggu sumber data nyata --}}
+    @if(false)
     <div class="row g-3 mb-4">
         <div class="col-lg-7">
             <div class="chart-card shadow-sm">
@@ -294,6 +296,7 @@
             </div>
         </div>
 
+        {{-- TODO: Top 5 Pasien chart menunggu sumber data nyata --}}
         <div class="col-lg-5">
             <div class="chart-card shadow-sm">
                 <div class="chart-card-title">🏆 Top 5 Pasien Paling Aktif</div>
@@ -304,7 +307,10 @@
             </div>
         </div>
     </div>
+    @endif
 
+    {{-- TODO: User Growth chart menunggu sumber data nyata --}}
+    @if(false)
     {{-- ============ ROW 3: USER GROWTH (FULL WIDTH) ============ --}}
     <div class="row g-3">
         <div class="col-12">
@@ -325,6 +331,7 @@
             </div>
         </div>
     </div>
+    @endif
 
 @endsection
 
@@ -529,7 +536,8 @@
             });
             } // end if chartKategoriCgd
 
-            // 3️⃣ COMPLIANCE MINUM OBAT - Stacked Bar
+            // 3️⃣ COMPLIANCE MINUM OBAT - Stacked Bar (disabled — menunggu sumber data nyata)
+            if (document.getElementById('chartCompliance')) {
             new Chart(document.getElementById('chartCompliance'), {
                 type: 'bar',
                 data: {
@@ -594,8 +602,10 @@
                     }
                 }
             });
+            } // end if chartCompliance
 
-            // 4️⃣ TOP 5 PASIEN PALING AKTIF - Horizontal Bar
+            // 4️⃣ TOP 5 PASIEN PALING AKTIF - Horizontal Bar (disabled — menunggu sumber data nyata)
+            if (document.getElementById('chartTopPasien')) {
             new Chart(document.getElementById('chartTopPasien'), {
                 type: 'bar',
                 data: {
@@ -632,8 +642,10 @@
                     }
                 }
             });
+            } // end if chartTopPasien
 
-            // 5️⃣ USER GROWTH 6 BULAN - Multi-line Area
+            // 5️⃣ USER GROWTH 6 BULAN - Multi-line Area (disabled — menunggu sumber data nyata)
+            if (document.getElementById('chartUserGrowth')) {
             new Chart(document.getElementById('chartUserGrowth'), {
                 type: 'line',
                 data: {
@@ -692,6 +704,7 @@
                     }
                 }
             });
+            } // end if chartUserGrowth
         });
     </script>
 @endpush
