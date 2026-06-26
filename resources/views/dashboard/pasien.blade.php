@@ -474,100 +474,21 @@
 @section('content')
 
     @php
-        // ===========================================
-        // DUMMY DATA — Replace dengan real query
-        // ===========================================
-        $obatHariIni = 3;
-        $obatSelesai = 2;
-        $cgdHariIni = 1;
-        $cgdSelesai = 0;
-        $kepatuhan = 86; // %
-        $streak = 12; // hari berturut-turut
+        // Data nyata dari DashboardController@pasien
+        $obatHariIni = $obat_hari_ini;
+        $obatSelesai = $obat_selesai;
+        $cgdHariIni  = $cgd_hari_ini;
+        $cgdSelesai  = $cgd_selesai;
+        $kepatuhan   = $kepatuhan;
+        $streak      = $streak;
 
-        $pmoName = auth()->user()->pasienProfile?->pmo?->name ?? 'Budi Santoso';
-        $pmoHubungan = 'Anak';
-        $pmoWhatsapp = '081234567892';
+        $pmoName     = $pmo['nama'] ?? null;
+        $pmoHubungan = $pmo['jenis'] ?? '-';
+        $pmoWhatsapp = $pmo['whatsapp'] ?? null;
 
-        // Jadwal hari ini (dummy)
-        $jadwalHariIni = [
-            [
-                'waktu' => '07:00',
-                'periode' => 'Pagi',
-                'jenis' => 'obat',
-                'nama' => 'Metformin 500mg',
-                'dosis' => '1 tablet sesudah makan',
-                'status' => 'done',
-            ],
-            [
-                'waktu' => '07:30',
-                'periode' => 'Pagi',
-                'jenis' => 'cgd',
-                'nama' => 'Cek Gula Darah Puasa',
-                'dosis' => 'Sebelum sarapan',
-                'status' => 'done',
-            ],
-            [
-                'waktu' => '12:00',
-                'periode' => 'Siang',
-                'jenis' => 'obat',
-                'nama' => 'Glimepiride 2mg',
-                'dosis' => '1 tablet sesudah makan siang',
-                'status' => 'done',
-            ],
-            [
-                'waktu' => '14:00',
-                'periode' => 'Siang',
-                'jenis' => 'cgd',
-                'nama' => 'Cek Gula Darah 2 Jam PP',
-                'dosis' => '2 jam setelah makan siang',
-                'status' => 'upcoming',
-            ],
-            [
-                'waktu' => '19:00',
-                'periode' => 'Malam',
-                'jenis' => 'obat',
-                'nama' => 'Metformin 500mg',
-                'dosis' => '1 tablet sesudah makan malam',
-                'status' => 'upcoming',
-            ],
-        ];
-
-        // Tracker mingguan (Senin–Minggu) — vertical detail
-        // status: done (semua patuh), partial (ada yang skip), missed (skip banyak), today, future
-        $weekTracker = [
-            ['day' => 'Senin', 'date' => 19, 'status' => 'done', 'obat' => '3/3', 'gd' => '2/2'],
-            ['day' => 'Selasa', 'date' => 20, 'status' => 'done', 'obat' => '3/3', 'gd' => '2/2'],
-            ['day' => 'Rabu', 'date' => 21, 'status' => 'partial', 'obat' => '2/3', 'gd' => '2/2'],
-            ['day' => 'Kamis', 'date' => 22, 'status' => 'missed', 'obat' => '1/3', 'gd' => '0/2'],
-            ['day' => 'Jumat', 'date' => 23, 'status' => 'done', 'obat' => '3/3', 'gd' => '2/2'],
-            ['day' => 'Sabtu', 'date' => 24, 'status' => 'done', 'obat' => '3/3', 'gd' => '2/2'],
-            ['day' => 'Minggu', 'date' => 25, 'status' => 'today', 'obat' => '2/3', 'gd' => '0/1'],
-        ];
-
-        $weekSummary = [
-            'patuh' => 5,
-            'partial' => 1,
-            'missed' => 1,
-        ];
-
-        // Tips diabetes (rotating)
-        $tips = [
-            ['icon' => '💧', 'text' => 'Minum air putih minimal 8 gelas per hari untuk membantu ginjal.'],
-            ['icon' => '🥗', 'text' => 'Pilih karbohidrat kompleks: nasi merah, oat, atau ubi.'],
-            ['icon' => '🚶', 'text' => 'Jalan kaki 30 menit setelah makan menurunkan gula darah.'],
-            ['icon' => '😴', 'text' => 'Tidur 7-8 jam membantu regulasi insulin lebih baik.'],
-        ];
-
-        // Pengumuman terbaru (dummy)
-        $pengumuman = [
-            [
-                'title' => 'Penyuluhan Diabetes Gratis',
-                'meta' => 'Sabtu, 31 Mei 2026 • Puskesmas Kecamatan',
-                'icon' => '📢',
-            ],
-            ['title' => 'Update Jadwal Cek Lab', 'meta' => 'Mulai 1 Juni 2026 • Buka pukul 06.00 WIB', 'icon' => '🔔'],
-            ['title' => 'Tips Puasa Aman bagi Penderita DM', 'meta' => '3 hari lalu • Artikel Edukasi', 'icon' => '📖'],
-        ];
+        $jadwalHariIni = $jadwal_hari_ini;   // [] bila kosong
+        $pengumuman    = $pengumuman;         // [] bila kosong
+        $tips          = $tips;
     @endphp
 
     {{-- ============ STAT CARDS ============ --}}
@@ -630,10 +551,16 @@
                     <div class="stat-icon stat-icon-primary">
                         <i class="ri ri-user-heart-line"></i>
                     </div>
-                    <i class="ri ri-whatsapp-line text-success" style="font-size: 1.2rem;"></i>
+                    @if ($pmoName)
+                        <i class="ri ri-whatsapp-line text-success" style="font-size: 1.2rem;"></i>
+                    @endif
                 </div>
-                <div class="fw-bold" style="font-size: 1.1rem; color: #111827;">{{ $pmoName }}</div>
-                <div class="stat-label mt-1">👥 PMO ({{ $pmoHubungan }})</div>
+                @if ($pmoName)
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #111827;">{{ $pmoName }}</div>
+                    <div class="stat-label mt-1">👥 PMO ({{ $pmoHubungan }})</div>
+                @else
+                    <div class="stat-label mt-1" style="color:#9ca3af;">Belum ada PMO terhubung.</div>
+                @endif
             </div>
         </div>
     </div>
@@ -651,23 +578,22 @@
                     <a href="#" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
                 </div>
 
-                @foreach ($jadwalHariIni as $jadwal)
+                @forelse ($jadwalHariIni as $jadwal)
                     <div class="timeline-item">
                         <div class="timeline-time">
                             {{ $jadwal['waktu'] }}
-                            <small>{{ $jadwal['periode'] }}</small>
+                            <small>{{ $jadwal['jenis'] === 'mo' ? 'Obat' : 'Cek GD' }}</small>
                         </div>
                         <div class="timeline-content {{ $jadwal['status'] }}">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <div class="timeline-title">
-                                        @if ($jadwal['jenis'] === 'obat')
-                                            💊 {{ $jadwal['nama'] }}
+                                        @if ($jadwal['jenis'] === 'mo')
+                                            💊 Minum Obat
                                         @else
-                                            🩸 {{ $jadwal['nama'] }}
+                                            🩸 Cek Gula Darah
                                         @endif
                                     </div>
-                                    <div class="timeline-meta">{{ $jadwal['dosis'] }}</div>
                                 </div>
                                 @if ($jadwal['status'] === 'done')
                                     <span class="timeline-status bg-success bg-opacity-10 text-success">
@@ -685,68 +611,17 @@
                             </div>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <div class="text-muted text-center py-4">Belum ada jadwal untuk hari ini.</div>
+                @endforelse
             </div>
         </div>
 
-        {{-- Col kanan: Tracker + PMO, flexbox column --}}
+        {{-- Col kanan: Tracker Mingguan (menyusul) + PMO, flexbox column --}}
         <div class="col-lg-4 d-flex flex-column">
-            {{-- Week Tracker --}}
-            <div class="chart-card shadow-sm mb-3 flex-grow-1">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <div class="chart-card-title">🗓️ Tracker Minggu Ini</div>
-                        <div class="chart-card-subtitle">19 - 25 Mei 2026</div>
-                    </div>
-                </div>
-
-                <div class="week-tracker-vertical">
-                    @foreach ($weekTracker as $day)
-                        <div class="day-row {{ $day['status'] }}">
-                            <div class="day-status-icon {{ $day['status'] }}">
-                                @if ($day['status'] === 'done')
-                                    ✓
-                                @elseif ($day['status'] === 'partial')
-                                    !
-                                @elseif ($day['status'] === 'missed')
-                                    ✗
-                                @elseif ($day['status'] === 'today')
-                                    ●
-                                @else
-                                    —
-                                @endif
-                            </div>
-                            <div class="day-info">
-                                <div class="day-label">
-                                    {{ $day['day'] }}<span class="day-date-small">{{ $day['date'] }} Mei</span>
-                                </div>
-                                <div class="day-summary">
-                                    <span class="metric">💊 {{ $day['obat'] }}</span>
-                                    <span class="metric">🩸 {{ $day['gd'] }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                {{-- Summary footer --}}
-                <div class="tracker-summary">
-                    <div class="summary-item">
-                        Patuh
-                        <span class="summary-value text-success">{{ $weekSummary['patuh'] }}</span>
-                    </div>
-                    <div class="summary-item">
-                        Sebagian
-                        <span class="summary-value text-warning">{{ $weekSummary['partial'] }}</span>
-                    </div>
-                    <div class="summary-item">
-                        Terlewat
-                        <span class="summary-value text-danger">{{ $weekSummary['missed'] }}</span>
-                    </div>
-                </div>
-            </div>
-
-
+            @if (false)
+                {{-- Week Tracker — data belum tersedia, diaktifkan di iterasi berikutnya --}}
+            @endif
         </div>
     </div>
 
@@ -765,9 +640,13 @@
                         <small><span class="badge bg-warning">●</span> Tinggi (&gt;140)</small>
                     </div>
                 </div>
-                <div class="chart-container" style="height: 240px;">
-                    <canvas id="chartTrendGD"></canvas>
-                </div>
+                @if (empty($gd_trend))
+                    <div class="text-muted text-center py-5">Belum ada data gula darah.</div>
+                @else
+                    <div class="chart-container" style="height: 240px;">
+                        <canvas id="chartTrendGD"></canvas>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -819,16 +698,18 @@
                     </div>
                     <a href="{{ route('public.pengumuman') }}" class="btn btn-sm btn-outline-primary">Semua</a>
                 </div>
-                @foreach ($pengumuman as $item)
+                @forelse ($pengumuman as $item)
                     <div class="announcement-item">
-                        <div class="announcement-icon">{{ $item['icon'] }}</div>
+                        <div class="announcement-icon">📢</div>
                         <div class="flex-grow-1">
                             <div class="announcement-title">{{ $item['title'] }}</div>
                             <div class="announcement-meta">{{ $item['meta'] }}</div>
                         </div>
                         <i class="ri ri-arrow-right-s-line text-muted align-self-center"></i>
                     </div>
-                @endforeach
+                @empty
+                    <div class="text-muted text-center py-4">Belum ada pengumuman terbaru.</div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -868,13 +749,15 @@
             // ===========================================
             // 1️⃣ TREND GULA DARAH 7 HARI
             // ===========================================
-            const gdLabels = ['Sen 19', 'Sel 20', 'Rab 21', 'Kam 22', 'Jum 23', 'Sab 24', 'Min 25'];
-            const gdData = [125, 118, 132, 145, 138, 122, 130];
+            const gdTrend = @json($gd_trend);
+            const gdLabels = gdTrend.map(d => d.tgl);
+            const gdData   = gdTrend.map(d => d.hasil);
+            const gdEmpty  = gdTrend.length === 0;
 
             // Color per point: hijau jika normal (70-140), warning jika > 140
             const gdPointColors = gdData.map(v => v > 140 ? PALETTE.warning : PALETTE.success);
 
-            new Chart(document.getElementById('chartTrendGD'), {
+            if (!gdEmpty) new Chart(document.getElementById('chartTrendGD'), {
                 type: 'line',
                 data: {
                     labels: gdLabels,

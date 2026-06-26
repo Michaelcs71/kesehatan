@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\JadwalCgdController;
 use App\Http\Controllers\JadwalMinumObatController;
@@ -238,7 +239,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:pasien'])
     ->prefix('pasien')->name('pasien.')->group(function () {
 
-        Route::view('/dashboard', 'dashboard.pasien')->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'pasien'])->name('dashboard');
 
         Route::view('/jadwal-cgd', 'placeholder')->name('jadwal.cgd')
             ->defaults('meta', ['title' => 'Jadwal Cek Gula Darah']);
@@ -258,7 +259,7 @@ Route::middleware(['auth', 'verified', 'role:pasien'])
 Route::middleware(['auth', 'verified', 'role:pmo'])
     ->prefix('pmo')->name('pmo.')->group(function () {
 
-        Route::view('/dashboard', 'dashboard.pmo')->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'pmo'])->name('dashboard');
     });
 
 /*
@@ -593,7 +594,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:superadmin'])
     ->prefix('superadmin')->name('superadmin.')->group(function () {
 
-        Route::view('/dashboard', 'dashboard.superadmin')->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'superadmin'])->name('dashboard');
     });
 
 /*
@@ -604,7 +605,7 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])
 Route::middleware(['auth', 'verified', 'role:admin,superadmin'])
     ->prefix('admin')->name('admin.')->group(function () {
 
-        Route::view('/dashboard', 'dashboard.admin')->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
         Route::view('/master/pasien', 'placeholder')->name('master.pasien')
             ->defaults('meta', ['title' => 'Master Pasien']);

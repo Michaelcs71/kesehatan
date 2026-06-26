@@ -1,0 +1,195 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Edukasi;
+use App\Models\MasterObat;
+use App\Models\PasienPmo;
+use App\Models\PengingatKejadian;
+use App\Models\PengingatMoLog;
+use App\Models\Pengumuman;
+use App\Models\User;
+use App\Repos\DashboardRepository;
+use Illuminate\Support\Carbon;
+
+class DashboardService
+{
+    /**
+     * Kumpulkan semua data yang dibutuhkan dashboard pasien.
+     */
+    public static function untukPasien(User $pasien): array
+    {
+        $mo = DashboardRepository::kejadianMoHariIni($pasien->id);
+        $cgd = DashboardRepository::cgdHariIni($pasien->id);
+
+        return [
+            'obat_hari_ini' => $mo['total'],
+            'obat_selesai' => $mo['selesai'],
+            'cgd_hari_ini' => $cgd['total'],
+            'cgd_selesai' => $cgd['selesai'],
+            'kepatuhan' => DashboardRepository::hitungKepatuhanMo($pasien->id),
+            'streak' => DashboardRepository::hitungStreak($pasien->id),
+            'jadwal_hari_ini' => self::jadwalHariIniPasien($pasien->id),
+            'gd_trend' => DashboardRepository::trenGdPasien($pasien->id),
+            'pmo' => self::infoPmo($pasien->id),
+            'pengumuman' => self::pengumumanTerbaru(),
+            'tips' => self::tips(),
+        ];
+    }
+
+    /**
+     * Daftar kejadian hari ini (MO + CGD) diurutkan berdasarkan waktu.
+     */
+    private static function jadwalHariIniPasien(string $pasienId): array
+    {
+        return PengingatKejadian::query()
+            ->where('user_pasien_id', $pasienId)
+            ->whereDate('waktu_jadwal', Carbon::today())
+            ->orderBy('waktu_jadwal')
+            ->get()
+            ->map(fn ($k) => [
+                'waktu' => Carbon::parse($k->waktu_jadwal)->format('H:i'),
+                'jenis' => $k->jenis,
+                'status' => match ($k->status) {
+                    PengingatKejadian::STATUS_DIKONFIRMASI => 'done',
+                    PengingatKejadian::STATUS_TERLEWAT => 'missed',
+                    default => 'upcoming',
+                },
+            ])->all();
+    }
+
+    /**
+     * Info PMO aktif untuk pasien. WhatsApp diambil dari users.whatsapp_number (bukan UserBiodata).
+     */
+    private static function infoPmo(string $pasienId): ?array
+    {
+        $pp = PasienPmo::query()->forPasien($pasienId)->active()->with('pmo')->first();
+        if (! $pp) {
+            return null;
+        }
+
+        return [
+            'nama' => $pp->nama_pmo,
+            'jenis' => $pp->jenis_pmo,
+            'whatsapp' => $pp->pmo?->whatsapp_number ?? null,
+        ];
+    }
+
+    /**
+     * Pengumuman terbaru yang sudah diterbitkan.
+     */
+    private static function pengumumanTerbaru(int $limit = 3): array
+    {
+        return Pengumuman::query()->published()->latest('published_at')->limit($limit)->get()
+            ->map(fn ($p) => [
+                'title' => $p->judul,
+                'meta' => optional($p->published_at)->translatedFormat('d M Y'),
+            ])->all();
+    }
+
+    /**
+     * Kumpulkan semua data yang dibutuhkan dashboard PMO.
+     */
+    public static function untukPmo(User $pmo): array
+    {
+        $binaan = DashboardRepository::pasienBinaan($pmo->id);
+        $pasienIds = $binaan->pluck('id_user')->all();
+
+        $patuhHariIni = PengingatKejadian::query()
+            ->whereIn('user_pasien_id', $pasienIds)
+            ->whereDate('waktu_jadwal', Carbon::today())
+            ->where('status', PengingatKejadian::STATUS_DIKONFIRMASI)->count();
+
+        $totalJadwal = PengingatKejadian::query()
+            ->whereIn('user_pasien_id', $pasienIds)
+            ->whereDate('waktu_jadwal', Carbon::today())->count();
+
+        $perluPerhatian = empty($pasienIds) ? 0 : PengingatKejadian::query()
+            ->whereIn('user_pasien_id', $pasienIds)
+            ->whereDate('waktu_jadwal', Carbon::today())
+            ->where('status', PengingatKejadian::STATUS_TERLEWAT)
+            ->distinct('user_pasien_id')->count('user_pasien_id');
+
+        $daftar = $binaan->map(fn ($pp) => [
+            'nama' => $pp->nama_pasien,
+            'status_diabetes' => $pp->status_diabetes,
+            'kepatuhan' => DashboardRepository::hitungKepatuhanMo($pp->id_user),
+            'gd_terakhir' => DashboardRepository::hasilGdTerakhir($pp->id_user),
+        ])->all();
+
+        return [
+            'total_pasien' => $binaan->count(),
+            'patuh_hari_ini' => $patuhHariIni,
+            'perlu_perhatian' => $perluPerhatian,
+            'total_jadwal_hari_ini' => $totalJadwal,
+            'daftar_pasien' => $daftar,
+            'timeline' => self::timelinePmo($pasienIds),
+            'tips' => self::tips(),
+        ];
+    }
+
+    /**
+     * Timeline aktivitas minum obat untuk daftar pasien (dipakai PMO & Admin).
+     */
+    private static function timelinePmo(array $pasienIds, int $limit = 10): array
+    {
+        if (empty($pasienIds)) {
+            return [];
+        }
+
+        return PengingatMoLog::query()
+            ->whereIn('id_user', $pasienIds)
+            ->orderByDesc('tgl_minum_obat')->orderByDesc('jam_minum_obat')
+            ->limit($limit)->get()
+            ->map(fn ($l) => [
+                'nama' => $l->nama_pasien,
+                'aksi' => 'Minum '.$l->nama_obat,
+                'waktu' => $l->jam_minum_obat_format,
+                'tgl' => optional($l->tgl_minum_obat)->format('d M'),
+            ])->all();
+    }
+
+    /**
+     * Kumpulkan semua data yang dibutuhkan dashboard Admin / Superadmin.
+     * Kunci 'ringkasan_user' hanya disertakan bila $role === 'superadmin'.
+     */
+    public static function untukAdmin(string $role): array
+    {
+        $data = [
+            'total_pasien' => User::query()->where('role', 'pasien')->count(),
+            'total_pmo' => User::query()->where('role', 'pmo')->count(),
+            'total_obat' => MasterObat::query()->count(),
+            'perlu_tindak_lanjut' => DashboardRepository::tindakLanjutHariIni(),
+            'tren_30hari' => DashboardRepository::trenCgd30Hari(),
+            'distribusi_kategori' => DashboardRepository::distribusiKategoriCgd(),
+            'aktivitas_terbaru' => self::timelinePmo(
+                PasienPmo::query()->pluck('id_user')->all()
+            ),
+        ];
+
+        if ($role === 'superadmin') {
+            $data['ringkasan_user'] = User::query()
+                ->selectRaw('role, COUNT(*) as jml')->groupBy('role')
+                ->pluck('jml', 'role')->all();
+        }
+
+        return $data;
+    }
+
+    /**
+     * Tips edukasi: ambil dari tabel edukasi bila ada, fallback ke tips statis.
+     */
+    private static function tips(): array
+    {
+        $edukasi = Edukasi::query()->published()->latest('published_at')->limit(4)->get();
+        if ($edukasi->isNotEmpty()) {
+            return $edukasi->map(fn ($e) => ['icon' => '📖', 'text' => $e->judul])->all();
+        }
+
+        return [
+            ['icon' => '💧', 'text' => 'Minum air putih minimal 8 gelas per hari.'],
+            ['icon' => '🥗', 'text' => 'Pilih karbohidrat kompleks: nasi merah, oat, atau ubi.'],
+            ['icon' => '🚶', 'text' => 'Jalan kaki 30 menit setelah makan menurunkan gula darah.'],
+        ];
+    }
+}

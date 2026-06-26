@@ -497,140 +497,55 @@
 
     @php
         // ===========================================
-        // DUMMY DATA — Replace dengan real query
+        // Data dari DashboardService::untukPmo()
         // ===========================================
-        $totalPasien = 3;
-        $patuhHariIni = 8;
-        $perluPerhatian = 2;
-        $totalJadwalHariIni = 12;
-        $streakPendampingan = 21; // hari berturut-turut PMO aktif
+        $totalPasien        = $total_pasien;
+        $patuhHariIni       = $patuh_hari_ini;
+        $perluPerhatian     = $perlu_perhatian;
+        $totalJadwalHariIni = $total_jadwal_hari_ini;
+        $streakPendampingan = 0; // belum dihitung putaran ini
 
-        // Pasien yang perlu perhatian (skip obat/GD)
-        $alertPasien = [
-            [
-                'nama' => 'Siti Pasien',
-                'inisial' => 'SP',
-                'masalah' => 'Belum minum obat siang (Glimepiride 2mg)',
-                'waktu' => '12:00',
-                'level' => 'danger',
-                'whatsapp' => '081234567893',
-            ],
-            [
-                'nama' => 'Bapak Hasan',
-                'inisial' => 'BH',
-                'masalah' => 'Skip cek gula darah pagi',
-                'waktu' => '07:30',
-                'level' => 'warning',
-                'whatsapp' => '081234567894',
-            ],
-        ];
+        // Alert pasien perlu perhatian — belum ada sumber data putaran ini
+        $alertPasien = [];
 
-        // Daftar pasien binaan
-        $pasienBinaan = [
-            [
-                'nama' => 'Siti Pasien',
-                'inisial' => 'SP',
-                'usia' => 58,
-                'tipe_dm' => 'Tipe 2',
-                'avatar_color' => 'blue',
-                'status' => 'warning', // online, warning, danger
-                'kepatuhan' => 75,
-                'streak' => 8,
-                'next_jadwal' => '14:00',
-                'next_aktivitas' => 'Cek GD 2 Jam PP',
-                'gd_terakhir' => 142,
-                'whatsapp' => '081234567893',
-            ],
-            [
-                'nama' => 'Bapak Hasan',
-                'inisial' => 'BH',
-                'usia' => 65,
-                'tipe_dm' => 'Tipe 2',
-                'avatar_color' => 'purple',
-                'status' => 'danger',
-                'kepatuhan' => 62,
-                'streak' => 3,
-                'next_jadwal' => '19:00',
-                'next_aktivitas' => 'Metformin 500mg',
-                'gd_terakhir' => 168,
-                'whatsapp' => '081234567894',
-            ],
-            [
-                'nama' => 'Ibu Aminah',
-                'inisial' => 'IA',
-                'usia' => 62,
-                'tipe_dm' => 'Tipe 2',
-                'avatar_color' => 'green',
-                'status' => 'online',
-                'kepatuhan' => 94,
-                'streak' => 28,
-                'next_jadwal' => '18:00',
-                'next_aktivitas' => 'Metformin 500mg',
-                'gd_terakhir' => 118,
-                'whatsapp' => '081234567895',
-            ],
-        ];
+        // Warna avatar berputar untuk variasi visual
+        $avatarColors = ['blue', 'purple', 'green', 'warning', 'danger'];
 
-        // Aktivitas hari ini (cross-pasien, sorted by waktu)
-        $aktivitasHariIni = [
-            [
-                'waktu' => '07:00',
-                'periode' => 'Pagi',
-                'pasien' => 'Ibu Aminah',
-                'aktivitas' => '💊 Metformin 500mg',
-                'status' => 'done',
-            ],
-            [
-                'waktu' => '07:30',
-                'periode' => 'Pagi',
-                'pasien' => 'Bapak Hasan',
-                'aktivitas' => '🩸 Cek Gula Darah Puasa',
-                'status' => 'missed',
-            ],
-            [
-                'waktu' => '08:00',
-                'periode' => 'Pagi',
-                'pasien' => 'Siti Pasien',
-                'aktivitas' => '💊 Metformin 500mg',
-                'status' => 'done',
-            ],
-            [
-                'waktu' => '12:00',
-                'periode' => 'Siang',
-                'pasien' => 'Siti Pasien',
-                'aktivitas' => '💊 Glimepiride 2mg',
-                'status' => 'missed',
-            ],
-            [
-                'waktu' => '14:00',
-                'periode' => 'Siang',
-                'pasien' => 'Siti Pasien',
-                'aktivitas' => '🩸 Cek GD 2 Jam PP',
-                'status' => 'upcoming',
-            ],
-            [
-                'waktu' => '18:00',
-                'periode' => 'Malam',
-                'pasien' => 'Ibu Aminah',
-                'aktivitas' => '💊 Metformin 500mg',
-                'status' => 'upcoming',
-            ],
-            [
-                'waktu' => '19:00',
-                'periode' => 'Malam',
-                'pasien' => 'Bapak Hasan',
-                'aktivitas' => '💊 Metformin 500mg',
-                'status' => 'upcoming',
-            ],
-        ];
+        // Daftar pasien binaan dari service
+        $pasienBinaan = collect($daftar_pasien)->map(function ($p, $idx) use ($avatarColors) {
+            $namaWords = explode(' ', trim($p['nama']));
+            $inisial   = mb_strtoupper(mb_substr($namaWords[0], 0, 1))
+                       . (isset($namaWords[1]) ? mb_strtoupper(mb_substr($namaWords[1], 0, 1)) : '');
+            $kepatuhan = $p['kepatuhan'] ?? 0;
+            $status    = $kepatuhan >= 80 ? 'online' : ($kepatuhan >= 60 ? 'warning' : 'danger');
+
+            return [
+                'nama'          => $p['nama'],
+                'inisial'       => $inisial,
+                'usia'          => '-',
+                'tipe_dm'       => $p['status_diabetes'] ?? 'Tipe 2',
+                'avatar_color'  => $avatarColors[$idx % count($avatarColors)],
+                'status'        => $status,
+                'kepatuhan'     => $kepatuhan,
+                'streak'        => 0,
+                'next_jadwal'   => '-',
+                'next_aktivitas'=> '-',
+                'gd_terakhir'   => $p['gd_terakhir'] ?? '-',
+                'whatsapp'      => null,
+            ];
+        })->all();
+
+        // Aktivitas timeline dari service (PengingatMoLog)
+        $aktivitasHariIni = collect($timeline)->map(fn ($t) => [
+            'waktu'     => $t['waktu'] ?? '-',
+            'periode'   => '-',
+            'pasien'    => $t['nama'],
+            'aktivitas' => $t['aksi'],
+            'status'    => 'done',
+        ])->all();
 
         // Tips pendampingan PMO
-        $tipsPmo = [
-            ['icon' => '💬', 'text' => 'Ingatkan pasien dengan cara yang lembut, hindari nada menghakimi.'],
-            ['icon' => '📞', 'text' => 'Telepon atau WhatsApp 15 menit sebelum waktu obat untuk reminder.'],
-            ['icon' => '📝', 'text' => 'Catat keluhan pasien lalu sampaikan ke dokter saat kontrol.'],
-            ['icon' => '🤝', 'text' => 'Beri pujian saat pasien konsisten — motivasi positif lebih efektif.'],
-        ];
+        $tipsPmo = $tips;
     @endphp
 
     {{-- ============ STAT CARDS ============ --}}
@@ -666,7 +581,7 @@
                 <div class="stat-label mt-1">✅ Sudah Patuh Hari Ini</div>
                 <div class="progress mt-2" style="height: 6px;">
                     <div class="progress-bar bg-success"
-                        style="width: {{ round(($patuhHariIni / $totalJadwalHariIni) * 100) }}%"></div>
+                        style="width: {{ $totalJadwalHariIni > 0 ? round(($patuhHariIni / $totalJadwalHariIni) * 100) : 0 }}%"></div>
                 </div>
             </div>
         </div>
@@ -756,7 +671,7 @@
             </div>
         </div>
 
-        @foreach ($pasienBinaan as $pasien)
+        @forelse ($pasienBinaan as $pasien)
             <div class="col-md-6 col-lg-4">
                 <div class="pasien-card shadow-sm">
                     {{-- Header --}}
@@ -801,9 +716,12 @@
                         </div>
                         <div class="quick-info-item">
                             @php
-                                $gdColor = $pasien['gd_terakhir'] > 140 ? 'text-warning' : 'text-success';
+                                $gdNilai  = $pasien['gd_terakhir'];
+                                $gdColor  = is_numeric($gdNilai) && $gdNilai > 140
+                                    ? 'text-warning'
+                                    : 'text-success';
                             @endphp
-                            <div class="quick-info-value {{ $gdColor }}">{{ $pasien['gd_terakhir'] }}</div>
+                            <div class="quick-info-value {{ $gdColor }}">{{ $gdNilai ?? '-' }}</div>
                             <div class="quick-info-label">GD mg/dL</div>
                         </div>
                     </div>
@@ -824,14 +742,26 @@
                         <a href="#" class="btn btn-outline-primary btn-sm">
                             <i class="ri ri-eye-line"></i> Detail
                         </a>
-                        <a href="https://wa.me/{{ ltrim($pasien['whatsapp'], '0') }}?text=Halo%20{{ urlencode($pasien['nama']) }}"
-                            target="_blank" class="btn btn-success btn-sm">
-                            <i class="ri ri-whatsapp-line"></i> Chat
-                        </a>
+                        @if ($pasien['whatsapp'])
+                            <a href="https://wa.me/{{ ltrim($pasien['whatsapp'], '0') }}?text=Halo%20{{ urlencode($pasien['nama']) }}"
+                                target="_blank" class="btn btn-success btn-sm">
+                                <i class="ri ri-whatsapp-line"></i> Chat
+                            </a>
+                        @else
+                            <button class="btn btn-success btn-sm" disabled title="Nomor WhatsApp belum tersedia">
+                                <i class="ri ri-whatsapp-line"></i> Chat
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
-        @endforeach
+        @empty
+            <div class="col-12">
+                <div class="text-center text-muted py-4">
+                    Belum ada pasien binaan.
+                </div>
+            </div>
+        @endforelse
     </div>
 
     {{-- ============ ROW: AKTIVITAS HARI INI + CHART KEPATUHAN ============ --}}
@@ -848,11 +778,13 @@
                 </div>
 
                 <div style="max-height: 480px; overflow-y: auto;">
-                    @foreach ($aktivitasHariIni as $aktivitas)
+                    @forelse ($aktivitasHariIni as $aktivitas)
                         <div class="activity-item">
                             <div class="activity-time">
                                 {{ $aktivitas['waktu'] }}
-                                <small>{{ $aktivitas['periode'] }}</small>
+                                @if(($aktivitas['periode'] ?? '-') !== '-')
+                                    <small>{{ $aktivitas['periode'] }}</small>
+                                @endif
                             </div>
                             <div class="activity-content {{ $aktivitas['status'] }}">
                                 <div class="d-flex justify-content-between align-items-start gap-2">
@@ -884,11 +816,17 @@
                                 </div>
                             </div>
                         </div>
-                    @endforeach
+                    @empty
+                        <div class="text-center text-muted py-4">
+                            Belum ada aktivitas.
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
 
+        {{-- TODO: chart kepatuhan binaan menunggu sumber data historis --}}
+        @if(false)
         {{-- Chart Kepatuhan --}}
         <div class="col-lg-5">
             <div class="chart-card shadow-sm">
@@ -901,7 +839,7 @@
                 {{-- Mini legend with averages --}}
                 <div class="mt-3 pt-3 border-top">
                     <div class="row g-2 text-center">
-                        @foreach ($pasienBinaan as $pasien)
+                        @forelse ($pasienBinaan as $pasien)
                             <div class="col-4">
                                 <div class="text-muted"
                                     style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">
@@ -911,11 +849,16 @@
                                     {{ $pasien['kepatuhan'] }}%
                                 </div>
                             </div>
-                        @endforeach
+                        @empty
+                            <div class="col-12 text-muted text-center py-2" style="font-size: 0.8rem;">
+                                Belum ada pasien binaan.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
     {{-- ============ TIPS PENDAMPINGAN ============ --}}
@@ -990,111 +933,9 @@
 
             // ===========================================
             // CHART: TREND KEPATUHAN 7 HARI per PASIEN
+            // Dinonaktifkan — menunggu sumber data historis (canvas tidak ada di DOM)
             // ===========================================
-            const labels = ['Sen 19', 'Sel 20', 'Rab 21', 'Kam 22', 'Jum 23', 'Sab 24', 'Min 25'];
-
-            new Chart(document.getElementById('chartKepatuhanBinaan'), {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                            label: 'Siti Pasien',
-                            data: [80, 90, 70, 60, 80, 75, 75],
-                            borderColor: PALETTE.primary,
-                            backgroundColor: 'rgba(59, 130, 246, 0.05)',
-                            borderWidth: 2.5,
-                            fill: false,
-                            tension: 0.4,
-                            pointRadius: 3,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: PALETTE.primary,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                        },
-                        {
-                            label: 'Bapak Hasan',
-                            data: [70, 65, 75, 50, 60, 55, 62],
-                            borderColor: PALETTE.purple,
-                            backgroundColor: 'rgba(139, 92, 246, 0.05)',
-                            borderWidth: 2.5,
-                            fill: false,
-                            tension: 0.4,
-                            pointRadius: 3,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: PALETTE.purple,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                        },
-                        {
-                            label: 'Ibu Aminah',
-                            data: [90, 95, 100, 90, 95, 100, 94],
-                            borderColor: PALETTE.success,
-                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                            borderWidth: 2.5,
-                            fill: false,
-                            tension: 0.4,
-                            pointRadius: 3,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: PALETTE.success,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                        },
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                padding: 10,
-                                boxWidth: 8,
-                                boxHeight: 8,
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                font: {
-                                    size: 11
-                                },
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(ctx) {
-                                    return ctx.dataset.label + ': ' + ctx.parsed.y + '%';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            suggestedMin: 40,
-                            suggestedMax: 100,
-                            grid: {
-                                color: '#f3f4f6',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                padding: 8,
-                                callback: function(v) {
-                                    return v + '%';
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
+            // (chart disabled — canvas #chartKepatuhanBinaan tidak di-render)
         });
     </script>
 @endpush

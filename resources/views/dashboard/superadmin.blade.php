@@ -161,14 +161,11 @@
 @section('content')
 
     @php
-        // ===========================================
-        // DUMMY DATA — Replace with real query nanti
-        // ===========================================
         $stats = [
-            'pasien' => ['value' => 248, 'delta' => 12.5, 'trend' => 'up'],
-            'pmo' => ['value' => 89, 'delta' => 5.2, 'trend' => 'up'],
-            'obat' => ['value' => 156, 'delta' => 8.1, 'trend' => 'up'],
-            'pending' => ['value' => 12, 'delta' => -3.4, 'trend' => 'down'],
+            'pasien'  => ['value' => $total_pasien, 'delta' => 0, 'trend' => 'up'],
+            'pmo'     => ['value' => $total_pmo, 'delta' => 0, 'trend' => 'up'],
+            'obat'    => ['value' => $total_obat, 'delta' => 0, 'trend' => 'up'],
+            'pending' => ['value' => $perlu_tindak_lanjut, 'delta' => 0, 'trend' => 'down'],
         ];
     @endphp
 
@@ -246,6 +243,48 @@
         </div>
     </div>
 
+    {{-- ============ RINGKASAN PENGGUNA (superadmin only) ============ --}}
+    @isset($ringkasan_user)
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="stat-card shadow-sm p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="stat-icon stat-icon-primary">
+                        <i class="ri ri-group-line"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="font-size:0.95rem;color:#111827;">Ringkasan Pengguna</div>
+                        <div class="stat-label">Jumlah akun per peran</div>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    @php
+                        $peranLabel = [
+                            'pasien'     => ['label' => 'Pasien',     'icon' => 'ri-user-heart-line',    'cls' => 'stat-icon-primary'],
+                            'pmo'        => ['label' => 'PMO',        'icon' => 'ri-team-line',           'cls' => 'stat-icon-info'],
+                            'admin'      => ['label' => 'Admin',      'icon' => 'ri-shield-user-line',    'cls' => 'stat-icon-success'],
+                            'superadmin' => ['label' => 'Superadmin', 'icon' => 'ri-shield-star-line',    'cls' => 'stat-icon-warning'],
+                        ];
+                    @endphp
+                    @foreach ($peranLabel as $key => $meta)
+                    <div class="col-6 col-md-3">
+                        <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background:#f9fafb;border:1px solid #f3f4f6;">
+                            <div class="stat-icon {{ $meta['cls'] }}" style="width:38px;height:38px;font-size:1.1rem;">
+                                <i class="ri {{ $meta['icon'] }}"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold" style="font-size:1.35rem;color:#111827;line-height:1;">{{ $ringkasan_user[$key] ?? 0 }}</div>
+                                <div class="stat-label">{{ $meta['label'] }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+    @endisset
+
     {{-- ============ ROW 1: TREND CGD + DISTRIBUSI KATEGORI ============ --}}
     <div class="row g-3 mb-4">
         <div class="col-lg-8">
@@ -269,14 +308,25 @@
             <div class="chart-card shadow-sm">
                 <div class="chart-card-title">🍩 Distribusi Hasil CGD</div>
                 <div class="chart-card-subtitle">Berdasarkan kategori</div>
-                <div class="chart-container chart-h-md">
-                    <canvas id="chartKategoriCgd"></canvas>
-                </div>
+                @if(array_sum($distribusi_kategori) === 0)
+                    <div class="chart-container chart-h-md d-flex align-items-center justify-content-center">
+                        <div class="text-center text-muted">
+                            <div style="font-size:2.5rem;">📊</div>
+                            <p class="mb-0 mt-2 small">Belum ada data CGD untuk ditampilkan.</p>
+                        </div>
+                    </div>
+                @else
+                    <div class="chart-container chart-h-md">
+                        <canvas id="chartKategoriCgd"></canvas>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 
     {{-- ============ ROW 2: COMPLIANCE + TOP 5 PASIEN ============ --}}
+    {{-- TODO: Compliance chart menunggu sumber data nyata --}}
+    @if(false)
     <div class="row g-3 mb-4">
         <div class="col-lg-7">
             <div class="chart-card shadow-sm">
@@ -288,6 +338,7 @@
             </div>
         </div>
 
+        {{-- TODO: Top 5 Pasien chart menunggu sumber data nyata --}}
         <div class="col-lg-5">
             <div class="chart-card shadow-sm">
                 <div class="chart-card-title">🏆 Top 5 Pasien Paling Aktif</div>
@@ -298,7 +349,10 @@
             </div>
         </div>
     </div>
+    @endif
 
+    {{-- TODO: User Growth chart menunggu sumber data nyata --}}
+    @if(false)
     {{-- ============ ROW 3: USER GROWTH (FULL WIDTH) ============ --}}
     <div class="row g-3">
         <div class="col-12">
@@ -319,6 +373,7 @@
             </div>
         </div>
     </div>
+    @endif
 
 @endsection
 
@@ -357,21 +412,10 @@
                 infoFade: 'rgba(6, 182, 212, 0.1)',
             };
 
-            // ===========================================
-            // DUMMY DATA — Replace dengan AJAX call nanti
-            // ===========================================
-
-            // 1️⃣ TREND CGD (30 hari) - Line chart
-            const trendLabels = Array.from({
-                length: 30
-            }, (_, i) => {
-                const d = new Date();
-                d.setDate(d.getDate() - (29 - i));
-                return d.getDate() + '/' + (d.getMonth() + 1);
-            });
-            const trendData = [12, 15, 18, 14, 20, 22, 19, 25, 28, 24, 30, 32, 29, 35, 38, 34, 40, 42, 39, 45, 48,
-                44, 50, 52, 49, 55, 58, 54, 60, 62
-            ];
+            // 1️⃣ TREND CGD (30 hari) - Line chart — data dari server
+            const trendRows = @json($tren_30hari);
+            const trendData = trendRows.map(r => r.jml);
+            const trendLabels = trendRows.map(r => r.tgl);
 
             new Chart(document.getElementById('chartTrendCgd'), {
                 type: 'line',
@@ -490,12 +534,17 @@
                 }
             };
 
+            // 2️⃣ DISTRIBUSI KATEGORI CGD — data dari server
+            const distribusi = @json($distribusi_kategori);
+            const distData = [distribusi.normal ?? 0, distribusi.tidak_terkontrol ?? 0, distribusi.tinggi ?? 0, distribusi.berbahaya ?? 0];
+
+            if (document.getElementById('chartKategoriCgd')) {
             new Chart(document.getElementById('chartKategoriCgd'), {
                 type: 'doughnut',
                 data: {
                     labels: ['Normal', 'Tidak Terkontrol', 'Tinggi', 'Berbahaya'],
                     datasets: [{
-                        data: [420, 280, 120, 35],
+                        data: distData,
                         backgroundColor: [PALETTE.success, PALETTE.warning, PALETTE.danger, PALETTE
                             .dark
                         ],
@@ -527,8 +576,10 @@
                 },
                 plugins: [doughnutCenterText]
             });
+            } // end if chartKategoriCgd
 
-            // 3️⃣ COMPLIANCE MINUM OBAT - Stacked Bar
+            // 3️⃣ COMPLIANCE MINUM OBAT - Stacked Bar (disabled — menunggu sumber data nyata)
+            if (document.getElementById('chartCompliance')) {
             new Chart(document.getElementById('chartCompliance'), {
                 type: 'bar',
                 data: {
@@ -593,8 +644,10 @@
                     }
                 }
             });
+            } // end if chartCompliance
 
-            // 4️⃣ TOP 5 PASIEN PALING AKTIF - Horizontal Bar
+            // 4️⃣ TOP 5 PASIEN PALING AKTIF - Horizontal Bar (disabled — menunggu sumber data nyata)
+            if (document.getElementById('chartTopPasien')) {
             new Chart(document.getElementById('chartTopPasien'), {
                 type: 'bar',
                 data: {
@@ -631,8 +684,10 @@
                     }
                 }
             });
+            } // end if chartTopPasien
 
-            // 5️⃣ USER GROWTH 6 BULAN - Multi-line Area
+            // 5️⃣ USER GROWTH 6 BULAN - Multi-line Area (disabled — menunggu sumber data nyata)
+            if (document.getElementById('chartUserGrowth')) {
             new Chart(document.getElementById('chartUserGrowth'), {
                 type: 'line',
                 data: {
@@ -691,6 +746,7 @@
                     }
                 }
             });
+            } // end if chartUserGrowth
         });
     </script>
 @endpush
