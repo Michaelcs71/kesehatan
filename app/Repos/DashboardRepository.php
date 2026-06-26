@@ -3,10 +3,12 @@
 namespace App\Repos;
 
 use App\Models\JadwalCgdPeserta;
+use App\Models\PasienPmo;
 use App\Models\PengingatCgdLog;
 use App\Models\PengingatKejadian;
 use App\Models\PengingatMoLog;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class DashboardRepository
 {
@@ -116,5 +118,24 @@ class DashboardRepository
             ->reverse()->values()
             ->map(fn ($r) => ['tgl' => $r->tgl_cgd->format('Y-m-d'), 'hasil' => (int) $r->hasil_mgdl])
             ->all();
+    }
+
+    /**
+     * Daftar pasien binaan aktif milik seorang PMO.
+     */
+    public static function pasienBinaan(string $pmoId): Collection
+    {
+        return PasienPmo::query()->forPmo($pmoId)->active()->get();
+    }
+
+    /**
+     * Hasil gula darah terakhir (mg/dL) milik pasien, atau null bila belum ada log.
+     */
+    public static function hasilGdTerakhir(string $pasienId): ?int
+    {
+        $log = PengingatCgdLog::query()->forUser($pasienId)
+            ->orderByDesc('tgl_cgd')->orderByDesc('jam_cgd')->first();
+
+        return $log?->hasil_mgdl;
     }
 }

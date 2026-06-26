@@ -137,4 +137,27 @@ class DashboardServiceTest extends TestCase
         $this->assertSame(0, $vm['kepatuhan']);
         $this->assertSame([], $vm['jadwal_hari_ini']);
     }
+
+    public function test_untuk_pmo_menghitung_total_pasien_binaan(): void
+    {
+        $pmo = User::factory()->create(['role' => 'pmo', 'is_active' => true]);
+        $p1 = User::factory()->create(['role' => 'pasien', 'is_active' => true]);
+        $p2 = User::factory()->create(['role' => 'pasien', 'is_active' => true]);
+
+        foreach ([$p1, $p2] as $p) {
+            \App\Models\PasienPmo::create([
+                'id_user' => $p->id, 'pmo_user_id' => $pmo->id,
+                'nama_pasien' => $p->name, 'nik' => fake()->numerify('################'),
+                'nama_pmo' => $pmo->name, 'jenis_pmo' => 'Keluarga',
+                'tanggal_regis' => now()->toDateString(), 'status_diabetes' => 'Tipe 2',
+                'is_active' => true,
+            ]);
+        }
+
+        $vm = \App\Services\DashboardService::untukPmo($pmo);
+
+        $this->assertSame(2, $vm['total_pasien']);
+        $this->assertArrayHasKey('daftar_pasien', $vm);
+        $this->assertArrayHasKey('timeline', $vm);
+    }
 }

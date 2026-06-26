@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Edukasi;
 use App\Models\PasienPmo;
 use App\Models\PengingatKejadian;
+use App\Models\PengingatMoLog;
 use App\Models\Pengumuman;
 use App\Models\User;
 use App\Repos\DashboardRepository;
@@ -82,6 +83,68 @@ class DashboardService
             ->map(fn ($p) => [
                 'title' => $p->judul,
                 'meta' => optional($p->published_at)->translatedFormat('d M Y'),
+            ])->all();
+    }
+
+    /**
+     * Kumpulkan semua data yang dibutuhkan dashboard PMO.
+     */
+    public static function untukPmo(User $pmo): array
+    {
+        $binaan = DashboardRepository::pasienBinaan($pmo->id);
+        $pasienIds = $binaan->pluck('id_user')->all();
+
+        $patuhHariIni = PengingatKejadian::query()
+            ->whereIn('user_pasien_id', $pasienIds)
+            ->whereDate('waktu_jadwal', Carbon::today())
+            ->where('status', PengingatKejadian::STATUS_DIKONFIRMASI)->count();
+
+        $totalJadwal = PengingatKejadian::query()
+            ->whereIn('user_pasien_id', $pasienIds)
+            ->whereDate('waktu_jadwal', Carbon::today())->count();
+
+        $perluPerhatian = empty($pasienIds) ? 0 : PengingatKejadian::query()
+            ->whereIn('user_pasien_id', $pasienIds)
+            ->whereDate('waktu_jadwal', Carbon::today())
+            ->where('status', PengingatKejadian::STATUS_TERLEWAT)
+            ->distinct('user_pasien_id')->count('user_pasien_id');
+
+        $daftar = $binaan->map(fn ($pp) => [
+            'nama' => $pp->nama_pasien,
+            'status_diabetes' => $pp->status_diabetes,
+            'kepatuhan' => DashboardRepository::hitungKepatuhanMo($pp->id_user),
+            'gd_terakhir' => DashboardRepository::hasilGdTerakhir($pp->id_user),
+        ])->all();
+
+        return [
+            'total_pasien' => $binaan->count(),
+            'patuh_hari_ini' => $patuhHariIni,
+            'perlu_perhatian' => $perluPerhatian,
+            'total_jadwal_hari_ini' => $totalJadwal,
+            'daftar_pasien' => $daftar,
+            'timeline' => self::timelinePmo($pasienIds),
+            'tips' => self::tips(),
+        ];
+    }
+
+    /**
+     * Timeline aktivitas minum obat untuk daftar pasien (dipakai PMO & Admin).
+     */
+    private static function timelinePmo(array $pasienIds, int $limit = 10): array
+    {
+        if (empty($pasienIds)) {
+            return [];
+        }
+
+        return PengingatMoLog::query()
+            ->whereIn('id_user', $pasienIds)
+            ->orderByDesc('tgl_minum_obat')->orderByDesc('jam_minum_obat')
+            ->limit($limit)->get()
+            ->map(fn ($l) => [
+                'nama' => $l->nama_pasien,
+                'aksi' => 'Minum '.$l->nama_obat,
+                'waktu' => $l->jam_minum_obat_format,
+                'tgl' => optional($l->tgl_minum_obat)->format('d M'),
             ])->all();
     }
 
