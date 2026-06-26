@@ -4,8 +4,8 @@ namespace Tests\Feature\Pasien;
 
 use App\Models\JadwalCgd;
 use App\Models\JadwalCgdPeserta;
+use App\Models\JadwalMinumObat;
 use App\Models\PasienPmo;
-use App\Models\PengingatCgdLog;
 use App\Models\PengingatKejadian;
 use App\Models\PengingatMoLog;
 use App\Models\User;
@@ -63,6 +63,39 @@ class PasienRiwayatServiceTest extends TestCase
         $this->assertSame('08:00', $hasil['mendatang'][0]['jam']);
     }
 
+    public function test_jadwal_cgd_hanya_milik_pasien(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-06-26 10:00:00'));
+        $p = $this->pasien();
+        $pp = $this->pasienPmoUntuk($p);
+
+        // Pasien pertama: 1 mendatang + 1 lewat
+        $besok = JadwalCgd::factory()->create(['tgl_jadwal_cgd' => '2026-06-27', 'jam_mulai' => '08:00:00']);
+        $kemarin = JadwalCgd::factory()->create(['tgl_jadwal_cgd' => '2026-06-25', 'jam_mulai' => '09:00:00']);
+        foreach ([$besok, $kemarin] as $j) {
+            JadwalCgdPeserta::create([
+                'jadwal_cgd_id' => $j->id, 'id_pasien_pmo' => $pp->id,
+                'nama_pasien' => $p->name, 'nama_pmo' => '-',
+            ]);
+        }
+
+        // Pasien kedua: tidak boleh muncul di hasil pasien pertama
+        $p2 = $this->pasien();
+        $pp2 = $this->pasienPmoUntuk($p2);
+        $jadwalLain = JadwalCgd::factory()->create(['tgl_jadwal_cgd' => '2026-06-28', 'jam_mulai' => '07:00:00']);
+        JadwalCgdPeserta::create([
+            'jadwal_cgd_id' => $jadwalLain->id, 'id_pasien_pmo' => $pp2->id,
+            'nama_pasien' => $p2->name, 'nama_pmo' => '-',
+        ]);
+
+        $hasil = PasienRiwayatService::jadwalCgdPasien($p->id);
+
+        $this->assertCount(1, $hasil['mendatang']);
+        $this->assertCount(1, $hasil['lewat']);
+        $total = count($hasil['mendatang']) + count($hasil['lewat']);
+        $this->assertSame(2, $total, 'Jadwal CGD pasien lain tidak boleh ikut terhitung');
+    }
+
     public function test_riwayat_mo_hanya_milik_pasien(): void
     {
         $p = $this->pasien();
@@ -100,6 +133,14 @@ class PasienRiwayatServiceTest extends TestCase
             'waktu_jadwal' => now(), 'status' => PengingatKejadian::STATUS_DIKONFIRMASI,
         ]);
 
+        // Pasien kedua dengan STATUS_MENUNGGU sendiri — tidak boleh ikut terhitung
+        $p2 = $this->pasien();
+        PengingatKejadian::create([
+            'jenis' => 'mo', 'jadwal_id' => Str::uuid()->toString(), 'id_pasien_pmo' => null,
+            'user_pasien_id' => $p2->id, 'user_pmo_id' => null,
+            'waktu_jadwal' => now(), 'status' => PengingatKejadian::STATUS_MENUNGGU,
+        ]);
+
         $this->assertCount(1, PasienRiwayatService::pendingKonfirmasi($p->id));
     }
 }
@@ -107,5 +148,5 @@ class PasienRiwayatServiceTest extends TestCase
 // Helper: id_jo NOT NULL — buat jadwal MO via factory dan kembalikan id-nya.
 function JadwalMinumObatId(): string
 {
-    return \App\Models\JadwalMinumObat::factory()->create()->id;
+    return JadwalMinumObat::factory()->create()->id;
 }
