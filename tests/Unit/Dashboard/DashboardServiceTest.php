@@ -99,15 +99,41 @@ class DashboardServiceTest extends TestCase
         $this->assertSame(2, DashboardRepository::hitungStreak($p->id));
     }
 
+    public function test_streak_tidak_melampaui_tanggal_paling_awal_kejadian(): void
+    {
+        $p = $this->pasien();
+        Carbon::setTestNow(Carbon::parse('2026-06-26 10:00:00'));
+        // Pasien punya kejadian hanya 3 hari terakhir, semua dikonfirmasi — streak harus 3, bukan 366
+        foreach (['2026-06-24', '2026-06-25', '2026-06-26'] as $tgl) {
+            PengingatKejadian::create([
+                'jenis' => 'mo',
+                'jadwal_id' => Str::uuid()->toString(),
+                'id_pasien_pmo' => null,
+                'user_pasien_id' => $p->id,
+                'user_pmo_id' => null,
+                'waktu_jadwal' => $tgl.' 08:00:00',
+                'status' => 'dikonfirmasi',
+            ]);
+        }
+
+        $this->assertSame(3, DashboardRepository::hitungStreak($p->id));
+    }
+
     public function test_untuk_pasien_mengembalikan_struktur_lengkap(): void
     {
         $vm = DashboardService::untukPasien($this->pasien());
 
         $this->assertArrayHasKey('obat_hari_ini', $vm);
+        $this->assertArrayHasKey('obat_selesai', $vm);
+        $this->assertArrayHasKey('cgd_hari_ini', $vm);
+        $this->assertArrayHasKey('cgd_selesai', $vm);
         $this->assertArrayHasKey('kepatuhan', $vm);
         $this->assertArrayHasKey('streak', $vm);
         $this->assertArrayHasKey('jadwal_hari_ini', $vm);
         $this->assertArrayHasKey('gd_trend', $vm);
+        $this->assertArrayHasKey('pmo', $vm);
+        $this->assertArrayHasKey('pengumuman', $vm);
+        $this->assertArrayHasKey('tips', $vm);
         $this->assertSame(0, $vm['kepatuhan']);
         $this->assertSame([], $vm['jadwal_hari_ini']);
     }

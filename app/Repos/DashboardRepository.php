@@ -33,17 +33,21 @@ class DashboardRepository
     }
 
     /**
-     * Hitung streak: berapa hari berturut-turut dari hari ini yang tidak punya kejadian terlewat.
+     * Hitung streak: berapa hari berturut-turut dari hari ini yang tidak punya kejadian terlewat,
+     * dibatasi sejak tanggal paling awal kejadian pasien.
      * Tidak ada riwayat sama sekali → 0.
      */
     public static function hitungStreak(string $pasienId): int
     {
-        $adaRiwayat = PengingatKejadian::query()
-            ->where('user_pasien_id', $pasienId)->exists();
+        $earliestWaktu = PengingatKejadian::query()
+            ->where('user_pasien_id', $pasienId)
+            ->min('waktu_jadwal');
 
-        if (! $adaRiwayat) {
+        if ($earliestWaktu === null) {
             return 0;
         }
+
+        $earliestDate = Carbon::parse($earliestWaktu)->toDateString();
 
         $terlewat = PengingatKejadian::query()
             ->where('user_pasien_id', $pasienId)
@@ -54,7 +58,11 @@ class DashboardRepository
 
         $streak = 0;
         $tanggal = Carbon::today();
-        while (! $terlewat->has($tanggal->toDateString()) && $streak < 366) {
+        while (
+            ! $terlewat->has($tanggal->toDateString())
+            && $tanggal->toDateString() >= $earliestDate
+            && $streak < 366
+        ) {
             $streak++;
             $tanggal = $tanggal->subDay();
         }
