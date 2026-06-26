@@ -76,9 +76,9 @@
             </table>
         </div>
         <div class="card-footer bg-white">
-            @if($tab === 'obat' && $riwayatMo)
+            @if($tab === 'obat' && $riwayatMo !== null)
                 {{ $riwayatMo->links() }}
-            @elseif($tab === 'gula' && $riwayatCgd)
+            @elseif($tab === 'gula' && $riwayatCgd !== null)
                 {{ $riwayatCgd->links() }}
             @endif
         </div>

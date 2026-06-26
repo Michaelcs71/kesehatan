@@ -6,6 +6,7 @@ use App\Models\JadwalCgd;
 use App\Models\JadwalCgdPeserta;
 use App\Models\JadwalMinumObat;
 use App\Models\PasienPmo;
+use App\Models\PengingatCgdLog;
 use App\Models\PengingatKejadian;
 use App\Models\PengingatMoLog;
 use App\Models\User;
@@ -114,6 +115,33 @@ class PasienRiwayatServiceTest extends TestCase
         ]);
 
         $page = PasienRiwayatService::riwayatMo($p->id);
+
+        $this->assertSame(1, $page->total());
+        $this->assertSame($p->id, $page->first()->id_user);
+    }
+
+    public function test_riwayat_cgd_hanya_milik_pasien(): void
+    {
+        $p = $this->pasien();
+        $lain = $this->pasien();
+        PengingatCgdLog::create([
+            'id_cgd' => JadwalCgd::factory()->create()->id,
+            'id_user' => $p->id, 'nama_pasien' => $p->name,
+            'jenis_kelamin' => 'L', 'tempat_cgd' => 'Klinik',
+            'tgl_cgd' => now()->toDateString(), 'jam_cgd' => '07:00:00',
+            'hasil_mgdl' => 123, 'kategori_hasil' => 'normal',
+            'patuh_selisih' => -77, 'foto_layar' => 'y.jpg', 'status' => 'aktif',
+        ]);
+        PengingatCgdLog::create([
+            'id_cgd' => JadwalCgd::factory()->create()->id,
+            'id_user' => $lain->id, 'nama_pasien' => $lain->name,
+            'jenis_kelamin' => 'L', 'tempat_cgd' => 'Klinik',
+            'tgl_cgd' => now()->toDateString(), 'jam_cgd' => '07:00:00',
+            'hasil_mgdl' => 150, 'kategori_hasil' => 'normal',
+            'patuh_selisih' => -77, 'foto_layar' => 'y.jpg', 'status' => 'aktif',
+        ]);
+
+        $page = PasienRiwayatService::riwayatCgd($p->id);
 
         $this->assertSame(1, $page->total());
         $this->assertSame($p->id, $page->first()->id_user);

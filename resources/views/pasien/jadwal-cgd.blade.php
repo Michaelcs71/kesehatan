@@ -8,12 +8,6 @@
 @endsection
 
 @section('content')
-    @php
-        $renderItem = function ($item) {
-            return $item;
-        };
-    @endphp
-
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white fw-semibold">Mendatang</div>
         <div class="list-group list-group-flush">
