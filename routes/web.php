@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PasienController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\JadwalCgdController;
 use App\Http\Controllers\JadwalMinumObatController;
@@ -241,8 +242,7 @@ Route::middleware(['auth', 'verified', 'role:pasien'])
 
         Route::get('/dashboard', [DashboardController::class, 'pasien'])->name('dashboard');
 
-        Route::view('/jadwal-cgd', 'placeholder')->name('jadwal.cgd')
-            ->defaults('meta', ['title' => 'Jadwal Cek Gula Darah']);
+        Route::get('/jadwal-cgd', [PasienController::class, 'jadwalCgd'])->name('jadwal.cgd');
         Route::view('/pengingat-mo', 'placeholder')->name('pengingat.mo')
             ->defaults('meta', ['title' => 'Pengingat Minum Obat']);
         Route::view('/pengingat-cgd', 'placeholder')->name('pengingat.cgd')
