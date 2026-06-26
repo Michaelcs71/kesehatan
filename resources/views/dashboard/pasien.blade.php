@@ -551,10 +551,16 @@
                     <div class="stat-icon stat-icon-primary">
                         <i class="ri ri-user-heart-line"></i>
                     </div>
-                    <i class="ri ri-whatsapp-line text-success" style="font-size: 1.2rem;"></i>
+                    @if ($pmoName)
+                        <i class="ri ri-whatsapp-line text-success" style="font-size: 1.2rem;"></i>
+                    @endif
                 </div>
-                <div class="fw-bold" style="font-size: 1.1rem; color: #111827;">{{ $pmoName }}</div>
-                <div class="stat-label mt-1">👥 PMO ({{ $pmoHubungan }})</div>
+                @if ($pmoName)
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #111827;">{{ $pmoName }}</div>
+                    <div class="stat-label mt-1">👥 PMO ({{ $pmoHubungan }})</div>
+                @else
+                    <div class="stat-label mt-1" style="color:#9ca3af;">Belum ada PMO terhubung.</div>
+                @endif
             </div>
         </div>
     </div>

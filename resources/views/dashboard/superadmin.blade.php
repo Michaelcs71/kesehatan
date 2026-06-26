@@ -243,6 +243,48 @@
         </div>
     </div>
 
+    {{-- ============ RINGKASAN PENGGUNA (superadmin only) ============ --}}
+    @isset($ringkasan_user)
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="stat-card shadow-sm p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="stat-icon stat-icon-primary">
+                        <i class="ri ri-group-line"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="font-size:0.95rem;color:#111827;">Ringkasan Pengguna</div>
+                        <div class="stat-label">Jumlah akun per peran</div>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    @php
+                        $peranLabel = [
+                            'pasien'     => ['label' => 'Pasien',     'icon' => 'ri-user-heart-line',    'cls' => 'stat-icon-primary'],
+                            'pmo'        => ['label' => 'PMO',        'icon' => 'ri-team-line',           'cls' => 'stat-icon-info'],
+                            'admin'      => ['label' => 'Admin',      'icon' => 'ri-shield-user-line',    'cls' => 'stat-icon-success'],
+                            'superadmin' => ['label' => 'Superadmin', 'icon' => 'ri-shield-star-line',    'cls' => 'stat-icon-warning'],
+                        ];
+                    @endphp
+                    @foreach ($peranLabel as $key => $meta)
+                    <div class="col-6 col-md-3">
+                        <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background:#f9fafb;border:1px solid #f3f4f6;">
+                            <div class="stat-icon {{ $meta['cls'] }}" style="width:38px;height:38px;font-size:1.1rem;">
+                                <i class="ri {{ $meta['icon'] }}"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold" style="font-size:1.35rem;color:#111827;line-height:1;">{{ $ringkasan_user[$key] ?? 0 }}</div>
+                                <div class="stat-label">{{ $meta['label'] }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+    @endisset
+
     {{-- ============ ROW 1: TREND CGD + DISTRIBUSI KATEGORI ============ --}}
     <div class="row g-3 mb-4">
         <div class="col-lg-8">
