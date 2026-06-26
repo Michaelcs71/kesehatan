@@ -138,4 +138,51 @@ class DashboardRepository
 
         return $log?->hasil_mgdl;
     }
+
+    /**
+     * Distribusi log CGD berdasarkan kategori_hasil.
+     */
+    public static function distribusiKategoriCgd(): array
+    {
+        $rows = PengingatCgdLog::query()
+            ->selectRaw('kategori_hasil, COUNT(*) as jml')
+            ->groupBy('kategori_hasil')->pluck('jml', 'kategori_hasil');
+
+        return [
+            'normal' => (int) ($rows['normal'] ?? 0),
+            'tidak_terkontrol' => (int) ($rows['tidak_terkontrol'] ?? 0),
+            'tinggi' => (int) ($rows['tinggi'] ?? 0),
+            'berbahaya' => (int) ($rows['berbahaya'] ?? 0),
+        ];
+    }
+
+    /**
+     * Tren jumlah log CGD per hari dalam 30 hari terakhir (selalu 30 entri, terlama ke terbaru).
+     */
+    public static function trenCgd30Hari(): array
+    {
+        $sejak = Carbon::today()->subDays(29)->toDateString();
+        $rows = PengingatCgdLog::query()
+            ->where('tgl_cgd', '>=', $sejak)
+            ->selectRaw('tgl_cgd, COUNT(*) as jml')
+            ->groupBy('tgl_cgd')->pluck('jml', 'tgl_cgd');
+
+        $hasil = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $t = Carbon::today()->subDays($i)->toDateString();
+            $hasil[] = ['tgl' => $t, 'jml' => (int) ($rows[$t] ?? 0)];
+        }
+
+        return $hasil;
+    }
+
+    /**
+     * Jumlah kejadian berstatus 'terlewat' yang dijadwalkan hari ini.
+     */
+    public static function tindakLanjutHariIni(): int
+    {
+        return PengingatKejadian::query()
+            ->whereDate('waktu_jadwal', Carbon::today())
+            ->where('status', PengingatKejadian::STATUS_TERLEWAT)->count();
+    }
 }

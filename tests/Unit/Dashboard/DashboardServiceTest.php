@@ -160,4 +160,24 @@ class DashboardServiceTest extends TestCase
         $this->assertArrayHasKey('daftar_pasien', $vm);
         $this->assertArrayHasKey('timeline', $vm);
     }
+
+    public function test_untuk_admin_menghitung_total_master(): void
+    {
+        \App\Models\MasterObat::factory()->count(3)->create();
+        User::factory()->create(['role' => 'pmo', 'is_active' => true]);
+
+        $vm = \App\Services\DashboardService::untukAdmin('admin');
+
+        $this->assertSame(3, $vm['total_obat']);
+        $this->assertSame(1, $vm['total_pmo']);
+        $this->assertArrayHasKey('tren_30hari', $vm);
+        $this->assertArrayHasKey('distribusi_kategori', $vm);
+        $this->assertArrayNotHasKey('ringkasan_user', $vm);
+    }
+
+    public function test_superadmin_punya_ringkasan_user(): void
+    {
+        $vm = \App\Services\DashboardService::untukAdmin('superadmin');
+        $this->assertArrayHasKey('ringkasan_user', $vm);
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Edukasi;
+use App\Models\MasterObat;
 use App\Models\PasienPmo;
 use App\Models\PengingatKejadian;
 use App\Models\PengingatMoLog;
@@ -146,6 +147,33 @@ class DashboardService
                 'waktu' => $l->jam_minum_obat_format,
                 'tgl' => optional($l->tgl_minum_obat)->format('d M'),
             ])->all();
+    }
+
+    /**
+     * Kumpulkan semua data yang dibutuhkan dashboard Admin / Superadmin.
+     * Kunci 'ringkasan_user' hanya disertakan bila $role === 'superadmin'.
+     */
+    public static function untukAdmin(string $role): array
+    {
+        $data = [
+            'total_pasien' => User::query()->where('role', 'pasien')->count(),
+            'total_pmo' => User::query()->where('role', 'pmo')->count(),
+            'total_obat' => MasterObat::query()->count(),
+            'perlu_tindak_lanjut' => DashboardRepository::tindakLanjutHariIni(),
+            'tren_30hari' => DashboardRepository::trenCgd30Hari(),
+            'distribusi_kategori' => DashboardRepository::distribusiKategoriCgd(),
+            'aktivitas_terbaru' => self::timelinePmo(
+                PasienPmo::query()->pluck('id_user')->all()
+            ),
+        ];
+
+        if ($role === 'superadmin') {
+            $data['ringkasan_user'] = User::query()
+                ->selectRaw('role, COUNT(*) as jml')->groupBy('role')
+                ->pluck('jml', 'role')->all();
+        }
+
+        return $data;
     }
 
     /**
