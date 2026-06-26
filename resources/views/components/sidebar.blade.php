@@ -169,6 +169,23 @@
         </li>
     @endcan
 
+    {{-- ============ MENU PASIEN ============ --}}
+    @if($isPasien)
+        <li class="nav-title">Menu Saya</li>
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('pasien.jadwal.cgd') ? 'active' : '' }}"
+                href="{{ route('pasien.jadwal.cgd') }}">
+                <span class="nav-icon"><i class="ri ri-drop-line"></i></span> Jadwal Cek Gula Darah
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('pasien.riwayat') ? 'active' : '' }}"
+                href="{{ route('pasien.riwayat') }}">
+                <span class="nav-icon"><i class="ri ri-history-line"></i></span> Riwayat
+            </a>
+        </li>
+    @endif
+
     {{-- ============ AKUN ============ --}}
     <li class="nav-title">Akun</li>
     <li class="nav-item">
