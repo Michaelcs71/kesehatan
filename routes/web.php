@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PasienController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\JadwalCgdController;
 use App\Http\Controllers\JadwalMinumObatController;
@@ -13,6 +12,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MasterKategoriObatController;
 use App\Http\Controllers\MasterObatController;
 use App\Http\Controllers\MasterSatuanObatController;
+use App\Http\Controllers\PasienController;
 use App\Http\Controllers\PasienPmoController;
 use App\Http\Controllers\PengaturanPengingatController;
 use App\Http\Controllers\PengingatCgdLogController;
@@ -243,12 +243,9 @@ Route::middleware(['auth', 'verified', 'role:pasien'])
         Route::get('/dashboard', [DashboardController::class, 'pasien'])->name('dashboard');
 
         Route::get('/jadwal-cgd', [PasienController::class, 'jadwalCgd'])->name('jadwal.cgd');
-        Route::view('/pengingat-mo', 'placeholder')->name('pengingat.mo')
-            ->defaults('meta', ['title' => 'Pengingat Minum Obat']);
-        Route::view('/pengingat-cgd', 'placeholder')->name('pengingat.cgd')
-            ->defaults('meta', ['title' => 'Pengingat Cek Gula Darah']);
-        Route::view('/riwayat', 'placeholder')->name('riwayat')
-            ->defaults('meta', ['title' => 'Riwayat']);
+        Route::get('/pengingat-mo', [PasienController::class, 'pengingatMo'])->name('pengingat.mo');
+        Route::get('/pengingat-cgd', [PasienController::class, 'pengingatCgd'])->name('pengingat.cgd');
+        Route::get('/riwayat', [PasienController::class, 'riwayat'])->name('riwayat');
     });
 
 /*
