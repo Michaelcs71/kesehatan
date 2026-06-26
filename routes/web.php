@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\JadwalCgdController;
 use App\Http\Controllers\JadwalMinumObatController;
@@ -238,7 +239,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:pasien'])
     ->prefix('pasien')->name('pasien.')->group(function () {
 
-        Route::view('/dashboard', 'dashboard.pasien')->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'pasien'])->name('dashboard');
 
         Route::view('/jadwal-cgd', 'placeholder')->name('jadwal.cgd')
             ->defaults('meta', ['title' => 'Jadwal Cek Gula Darah']);
