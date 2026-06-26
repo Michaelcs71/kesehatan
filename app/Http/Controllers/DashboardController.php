@@ -12,4 +12,9 @@ class DashboardController extends Controller
     {
         return view('dashboard.pasien', DashboardService::untukPasien($request->user()));
     }
+
+    public function pmo(Request $request): View
+    {
+        return view('dashboard.pmo', DashboardService::untukPmo($request->user()));
+    }
 }

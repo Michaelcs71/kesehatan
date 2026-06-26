@@ -259,7 +259,7 @@ Route::middleware(['auth', 'verified', 'role:pasien'])
 Route::middleware(['auth', 'verified', 'role:pmo'])
     ->prefix('pmo')->name('pmo.')->group(function () {
 
-        Route::view('/dashboard', 'dashboard.pmo')->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'pmo'])->name('dashboard');
     });
 
 /*
