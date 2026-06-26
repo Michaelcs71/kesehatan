@@ -782,7 +782,9 @@
                         <div class="activity-item">
                             <div class="activity-time">
                                 {{ $aktivitas['waktu'] }}
-                                <small>{{ $aktivitas['periode'] }}</small>
+                                @if(($aktivitas['periode'] ?? '-') !== '-')
+                                    <small>{{ $aktivitas['periode'] }}</small>
+                                @endif
                             </div>
                             <div class="activity-content {{ $aktivitas['status'] }}">
                                 <div class="d-flex justify-content-between align-items-start gap-2">
@@ -823,6 +825,8 @@
             </div>
         </div>
 
+        {{-- TODO: chart kepatuhan binaan menunggu sumber data historis --}}
+        @if(false)
         {{-- Chart Kepatuhan --}}
         <div class="col-lg-5">
             <div class="chart-card shadow-sm">
@@ -854,6 +858,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
     {{-- ============ TIPS PENDAMPINGAN ============ --}}
@@ -928,111 +933,9 @@
 
             // ===========================================
             // CHART: TREND KEPATUHAN 7 HARI per PASIEN
+            // Dinonaktifkan — menunggu sumber data historis (canvas tidak ada di DOM)
             // ===========================================
-            const labels = ['Sen 19', 'Sel 20', 'Rab 21', 'Kam 22', 'Jum 23', 'Sab 24', 'Min 25'];
-
-            new Chart(document.getElementById('chartKepatuhanBinaan'), {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                            label: 'Siti Pasien',
-                            data: [80, 90, 70, 60, 80, 75, 75],
-                            borderColor: PALETTE.primary,
-                            backgroundColor: 'rgba(59, 130, 246, 0.05)',
-                            borderWidth: 2.5,
-                            fill: false,
-                            tension: 0.4,
-                            pointRadius: 3,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: PALETTE.primary,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                        },
-                        {
-                            label: 'Bapak Hasan',
-                            data: [70, 65, 75, 50, 60, 55, 62],
-                            borderColor: PALETTE.purple,
-                            backgroundColor: 'rgba(139, 92, 246, 0.05)',
-                            borderWidth: 2.5,
-                            fill: false,
-                            tension: 0.4,
-                            pointRadius: 3,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: PALETTE.purple,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                        },
-                        {
-                            label: 'Ibu Aminah',
-                            data: [90, 95, 100, 90, 95, 100, 94],
-                            borderColor: PALETTE.success,
-                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                            borderWidth: 2.5,
-                            fill: false,
-                            tension: 0.4,
-                            pointRadius: 3,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: PALETTE.success,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                        },
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                padding: 10,
-                                boxWidth: 8,
-                                boxHeight: 8,
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                font: {
-                                    size: 11
-                                },
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(ctx) {
-                                    return ctx.dataset.label + ': ' + ctx.parsed.y + '%';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            suggestedMin: 40,
-                            suggestedMax: 100,
-                            grid: {
-                                color: '#f3f4f6',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                padding: 8,
-                                callback: function(v) {
-                                    return v + '%';
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
+            // (chart disabled — canvas #chartKepatuhanBinaan tidak di-render)
         });
     </script>
 @endpush
