@@ -594,7 +594,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:superadmin'])
     ->prefix('superadmin')->name('superadmin.')->group(function () {
 
-        Route::view('/dashboard', 'dashboard.superadmin')->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'superadmin'])->name('dashboard');
     });
 
 /*
@@ -605,7 +605,7 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])
 Route::middleware(['auth', 'verified', 'role:admin,superadmin'])
     ->prefix('admin')->name('admin.')->group(function () {
 
-        Route::view('/dashboard', 'dashboard.admin')->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
         Route::view('/master/pasien', 'placeholder')->name('master.pasien')
             ->defaults('meta', ['title' => 'Master Pasien']);

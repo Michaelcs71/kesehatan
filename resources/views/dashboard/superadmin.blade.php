@@ -161,14 +161,11 @@
 @section('content')
 
     @php
-        // ===========================================
-        // DUMMY DATA — Replace with real query nanti
-        // ===========================================
         $stats = [
-            'pasien' => ['value' => 248, 'delta' => 12.5, 'trend' => 'up'],
-            'pmo' => ['value' => 89, 'delta' => 5.2, 'trend' => 'up'],
-            'obat' => ['value' => 156, 'delta' => 8.1, 'trend' => 'up'],
-            'pending' => ['value' => 12, 'delta' => -3.4, 'trend' => 'down'],
+            'pasien'  => ['value' => $total_pasien, 'delta' => 0, 'trend' => 'up'],
+            'pmo'     => ['value' => $total_pmo, 'delta' => 0, 'trend' => 'up'],
+            'obat'    => ['value' => $total_obat, 'delta' => 0, 'trend' => 'up'],
+            'pending' => ['value' => $perlu_tindak_lanjut, 'delta' => 0, 'trend' => 'down'],
         ];
     @endphp
 
@@ -269,9 +266,18 @@
             <div class="chart-card shadow-sm">
                 <div class="chart-card-title">🍩 Distribusi Hasil CGD</div>
                 <div class="chart-card-subtitle">Berdasarkan kategori</div>
-                <div class="chart-container chart-h-md">
-                    <canvas id="chartKategoriCgd"></canvas>
-                </div>
+                @if(array_sum($distribusi_kategori) === 0)
+                    <div class="chart-container chart-h-md d-flex align-items-center justify-content-center">
+                        <div class="text-center text-muted">
+                            <div style="font-size:2.5rem;">📊</div>
+                            <p class="mb-0 mt-2 small">Belum ada data CGD untuk ditampilkan.</p>
+                        </div>
+                    </div>
+                @else
+                    <div class="chart-container chart-h-md">
+                        <canvas id="chartKategoriCgd"></canvas>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -357,21 +363,10 @@
                 infoFade: 'rgba(6, 182, 212, 0.1)',
             };
 
-            // ===========================================
-            // DUMMY DATA — Replace dengan AJAX call nanti
-            // ===========================================
-
-            // 1️⃣ TREND CGD (30 hari) - Line chart
-            const trendLabels = Array.from({
-                length: 30
-            }, (_, i) => {
-                const d = new Date();
-                d.setDate(d.getDate() - (29 - i));
-                return d.getDate() + '/' + (d.getMonth() + 1);
-            });
-            const trendData = [12, 15, 18, 14, 20, 22, 19, 25, 28, 24, 30, 32, 29, 35, 38, 34, 40, 42, 39, 45, 48,
-                44, 50, 52, 49, 55, 58, 54, 60, 62
-            ];
+            // 1️⃣ TREND CGD (30 hari) - Line chart — data dari server
+            const trendRows = @json($tren_30hari);
+            const trendData = trendRows.map(r => r.jml);
+            const trendLabels = trendRows.map(r => r.tgl);
 
             new Chart(document.getElementById('chartTrendCgd'), {
                 type: 'line',
@@ -490,12 +485,17 @@
                 }
             };
 
+            // 2️⃣ DISTRIBUSI KATEGORI CGD — data dari server
+            const distribusi = @json($distribusi_kategori);
+            const distData = [distribusi.normal ?? 0, distribusi.tidak_terkontrol ?? 0, distribusi.tinggi ?? 0, distribusi.berbahaya ?? 0];
+
+            if (document.getElementById('chartKategoriCgd')) {
             new Chart(document.getElementById('chartKategoriCgd'), {
                 type: 'doughnut',
                 data: {
                     labels: ['Normal', 'Tidak Terkontrol', 'Tinggi', 'Berbahaya'],
                     datasets: [{
-                        data: [420, 280, 120, 35],
+                        data: distData,
                         backgroundColor: [PALETTE.success, PALETTE.warning, PALETTE.danger, PALETTE
                             .dark
                         ],
@@ -527,6 +527,7 @@
                 },
                 plugins: [doughnutCenterText]
             });
+            } // end if chartKategoriCgd
 
             // 3️⃣ COMPLIANCE MINUM OBAT - Stacked Bar
             new Chart(document.getElementById('chartCompliance'), {

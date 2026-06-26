@@ -17,4 +17,14 @@ class DashboardController extends Controller
     {
         return view('dashboard.pmo', DashboardService::untukPmo($request->user()));
     }
+
+    public function admin(Request $request): View
+    {
+        return view('dashboard.admin', DashboardService::untukAdmin('admin'));
+    }
+
+    public function superadmin(Request $request): View
+    {
+        return view('dashboard.superadmin', DashboardService::untukAdmin('superadmin'));
+    }
 }
