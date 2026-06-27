@@ -4,7 +4,12 @@
 
 @section('page-header')
     <a href="{{ route('admin.master.pasien') }}" class="small text-decoration-none">&larr; Kembali ke direktori</a>
-    <h4 class="fw-bold mb-1 mt-1">{{ $d['nama'] }}</h4>
+    <div class="d-flex align-items-center justify-content-between mt-1">
+        <h4 class="fw-bold mb-1">{{ $d['nama'] }}</h4>
+        @can('master-user.edit')
+            <a href="{{ route('master-user.edit', $id) }}" class="btn btn-sm btn-outline-secondary">Kelola akun</a>
+        @endcan
+    </div>
 @endsection
 
 @section('content')

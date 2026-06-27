@@ -14,12 +14,14 @@ class MasterDirektoriService
 {
     public static function daftarPasien(array $filter = []): LengthAwarePaginator
     {
-        return PasienPmo::query()->active()
+        return PasienPmo::query()
             ->when($filter['cari'] ?? null, fn ($q, $c) => $q->search($c))
             ->with(['pasien', 'pmo'])
             ->orderBy('nama_pasien')
             ->paginate(15)
             ->withQueryString()
+            // Query kepatuhan per baris diterima pada skala klinik (≤15/halaman).
+            // Jika profiling menunjukkan lambat, pertimbangkan batch query kepatuhan sekaligus.
             ->through(fn ($pp) => [
                 'id_user' => $pp->id_user,
                 'nama' => $pp->nama_pasien,

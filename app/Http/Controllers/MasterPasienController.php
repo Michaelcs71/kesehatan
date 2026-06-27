@@ -21,6 +21,6 @@ class MasterPasienController extends Controller
         $detail = MasterDirektoriService::detailPasien($id);
         abort_if($detail === null, 404);
 
-        return view('master-pasien.show', ['d' => $detail]);
+        return view('master-pasien.show', ['d' => $detail, 'id' => $id]);
     }
 }

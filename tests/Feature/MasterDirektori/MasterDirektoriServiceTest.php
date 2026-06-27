@@ -70,6 +70,24 @@ class MasterDirektoriServiceTest extends TestCase
         $this->assertArrayHasKey('riwayat_cgd', $d);
     }
 
+    public function test_daftar_pasien_termasuk_nonaktif(): void
+    {
+        $p = User::factory()->create(['role' => 'pasien', 'is_active' => false]);
+        PasienPmo::create([
+            'id_user' => $p->id, 'pmo_user_id' => null, 'nama_pasien' => 'Pasien Nonaktif',
+            'nik' => fake()->numerify('################'), 'nama_pmo' => '-',
+            'jenis_pmo' => 'Keluarga', 'tanggal_regis' => now()->toDateString(),
+            'status_diabetes' => 'Tipe 2', 'is_active' => false,
+        ]);
+
+        $page = MasterDirektoriService::daftarPasien();
+
+        $this->assertSame(1, $page->total());
+        $row = $page->items()[0];
+        $this->assertSame('Pasien Nonaktif', $row['nama']);
+        $this->assertFalse($row['is_active']);
+    }
+
     public function test_daftar_pmo_menghitung_binaan(): void
     {
         $pmo = User::factory()->create(['role' => 'pmo', 'is_active' => true]);
