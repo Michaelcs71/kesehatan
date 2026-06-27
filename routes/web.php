@@ -11,6 +11,8 @@ use App\Http\Controllers\KontenPengumumanController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MasterKategoriObatController;
 use App\Http\Controllers\MasterObatController;
+use App\Http\Controllers\MasterPasienController;
+use App\Http\Controllers\MasterPmoController;
 use App\Http\Controllers\MasterSatuanObatController;
 use App\Http\Controllers\PasienController;
 use App\Http\Controllers\PasienPmoController;
@@ -604,10 +606,16 @@ Route::middleware(['auth', 'verified', 'role:admin,superadmin'])
 
         Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
-        Route::view('/master/pasien', 'placeholder')->name('master.pasien')
-            ->defaults('meta', ['title' => 'Master Pasien']);
-        Route::view('/master/pmo', 'placeholder')->name('master.pmo')
-            ->defaults('meta', ['title' => 'Master PMO']);
+        Route::get('/master/pasien', [MasterPasienController::class, 'index'])
+            ->name('master.pasien')->middleware('permission:master-pasien.index');
+        Route::get('/master/pasien/{id}', [MasterPasienController::class, 'show'])
+            ->name('master.pasien.show')->middleware('permission:master-pasien.show')
+            ->where('id', '[0-9a-f\-]+');
+        Route::get('/master/pmo', [MasterPmoController::class, 'index'])
+            ->name('master.pmo')->middleware('permission:master-pmo.index');
+        Route::get('/master/pmo/{id}', [MasterPmoController::class, 'show'])
+            ->name('master.pmo.show')->middleware('permission:master-pmo.show')
+            ->where('id', '[0-9a-f\-]+');
 
         Route::view('/transaksi/jadwal-cgd', 'placeholder')->name('transaksi.jadwal_cgd')
             ->defaults('meta', ['title' => 'Jadwal Cek Gula Darah']);

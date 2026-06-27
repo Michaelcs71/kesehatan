@@ -128,6 +128,24 @@
         </li>
     @endcan
 
+    @can('master-pasien.index')
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('admin.master.pasien') || request()->routeIs('admin.master.pasien.show') ? 'active' : '' }}"
+                href="{{ route('admin.master.pasien') }}">
+                <span class="nav-icon"><i class="ri ri-user-heart-line"></i></span> Master Pasien
+            </a>
+        </li>
+    @endcan
+
+    @can('master-pmo.index')
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('admin.master.pmo') || request()->routeIs('admin.master.pmo.show') ? 'active' : '' }}"
+                href="{{ route('admin.master.pmo') }}">
+                <span class="nav-icon"><i class="ri ri-parent-line"></i></span> Master PMO
+            </a>
+        </li>
+    @endcan
+
     @can('master-kategori-obat.index')
         <li class="nav-item">
             <a class="nav-link {{ request()->routeIs('master-kategori-obat.*') ? 'active' : '' }}"
