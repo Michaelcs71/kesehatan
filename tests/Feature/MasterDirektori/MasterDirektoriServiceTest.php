@@ -69,4 +69,45 @@ class MasterDirektoriServiceTest extends TestCase
         $this->assertArrayHasKey('riwayat_mo', $d);
         $this->assertArrayHasKey('riwayat_cgd', $d);
     }
+
+    public function test_daftar_pmo_menghitung_binaan(): void
+    {
+        $pmo = User::factory()->create(['role' => 'pmo', 'is_active' => true]);
+        $p = User::factory()->create(['role' => 'pasien', 'is_active' => true]);
+        PasienPmo::create([
+            'id_user' => $p->id, 'pmo_user_id' => $pmo->id, 'nama_pasien' => 'Pasien A',
+            'nik' => fake()->numerify('################'), 'nama_pmo' => $pmo->name,
+            'jenis_pmo' => 'Keluarga', 'tanggal_regis' => now()->toDateString(),
+            'status_diabetes' => 'Tipe 2', 'is_active' => true,
+        ]);
+
+        $page = MasterDirektoriService::daftarPmo();
+
+        $this->assertSame(1, $page->total());
+        $this->assertSame(1, $page->items()[0]['jumlah_binaan']);
+    }
+
+    public function test_detail_pmo_null_untuk_non_pmo(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+        $this->assertNull(MasterDirektoriService::detailPmo($admin->id));
+    }
+
+    public function test_detail_pmo_berisi_binaan(): void
+    {
+        $pmo = User::factory()->create(['role' => 'pmo', 'is_active' => true]);
+        $p = User::factory()->create(['role' => 'pasien', 'is_active' => true]);
+        PasienPmo::create([
+            'id_user' => $p->id, 'pmo_user_id' => $pmo->id, 'nama_pasien' => 'Pasien A',
+            'nik' => fake()->numerify('################'), 'nama_pmo' => $pmo->name,
+            'jenis_pmo' => 'Keluarga', 'tanggal_regis' => now()->toDateString(),
+            'status_diabetes' => 'Tipe 2', 'is_active' => true,
+        ]);
+
+        $d = MasterDirektoriService::detailPmo($pmo->id);
+
+        $this->assertSame($pmo->name, $d['nama']);
+        $this->assertCount(1, $d['binaan']);
+        $this->assertSame('Pasien A', $d['binaan'][0]['nama']);
+    }
 }

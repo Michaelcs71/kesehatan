@@ -6,6 +6,7 @@ use App\Models\JadwalMinumObat;
 use App\Models\PasienPmo;
 use App\Models\PengingatCgdLog;
 use App\Models\PengingatMoLog;
+use App\Models\User;
 use App\Repos\DashboardRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -67,6 +68,48 @@ class MasterDirektoriService
                 ->orderByDesc('tgl_minum_obat')->orderByDesc('jam_minum_obat')->limit(5)->get(),
             'riwayat_cgd' => PengingatCgdLog::query()->forUser($userId)
                 ->orderByDesc('tgl_cgd')->orderByDesc('jam_cgd')->limit(5)->get(),
+        ];
+    }
+
+    public static function daftarPmo(array $filter = []): LengthAwarePaginator
+    {
+        return User::query()->where('role', 'pmo')
+            ->when($filter['cari'] ?? null, fn ($q, $c) => $q->where(function ($qq) use ($c) {
+                $qq->where('name', 'like', "%{$c}%")
+                    ->orWhere('username', 'like', "%{$c}%")
+                    ->orWhere('email', 'like', "%{$c}%");
+            }))
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn ($u) => [
+                'id' => $u->id,
+                'nama' => $u->name,
+                'kontak' => $u->whatsapp_number ?? '-',
+                'jumlah_binaan' => PasienPmo::query()->forPmo($u->id)->active()->count(),
+                'is_active' => $u->is_active,
+            ]);
+    }
+
+    public static function detailPmo(string $userId): ?array
+    {
+        $pmo = User::query()->where('id', $userId)->where('role', 'pmo')->first();
+        if (! $pmo) {
+            return null;
+        }
+
+        $binaan = DashboardRepository::pasienBinaan($userId)->map(fn ($pp) => [
+            'nama' => $pp->nama_pasien,
+            'status_diabetes' => $pp->status_diabetes,
+            'kepatuhan' => DashboardRepository::hitungKepatuhanMo($pp->id_user),
+            'gd_terakhir' => DashboardRepository::hasilGdTerakhir($pp->id_user),
+        ])->all();
+
+        return [
+            'nama' => $pmo->name,
+            'kontak' => $pmo->whatsapp_number ?? '-',
+            'is_active' => $pmo->is_active,
+            'binaan' => $binaan,
         ];
     }
 }
