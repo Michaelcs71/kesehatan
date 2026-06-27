@@ -11,6 +11,7 @@ use App\Http\Controllers\KontenPengumumanController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MasterKategoriObatController;
 use App\Http\Controllers\MasterObatController;
+use App\Http\Controllers\MasterPasienController;
 use App\Http\Controllers\MasterSatuanObatController;
 use App\Http\Controllers\PasienController;
 use App\Http\Controllers\PasienPmoController;
@@ -604,8 +605,11 @@ Route::middleware(['auth', 'verified', 'role:admin,superadmin'])
 
         Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
-        Route::view('/master/pasien', 'placeholder')->name('master.pasien')
-            ->defaults('meta', ['title' => 'Master Pasien']);
+        Route::get('/master/pasien', [MasterPasienController::class, 'index'])
+            ->name('master.pasien')->middleware('permission:master-pasien.index');
+        Route::get('/master/pasien/{id}', [MasterPasienController::class, 'show'])
+            ->name('master.pasien.show')->middleware('permission:master-pasien.show')
+            ->where('id', '[0-9a-f\-]+');
         Route::view('/master/pmo', 'placeholder')->name('master.pmo')
             ->defaults('meta', ['title' => 'Master PMO']);
 
