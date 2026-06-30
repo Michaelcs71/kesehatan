@@ -113,29 +113,62 @@ body.mobile-sidebar-open .sidebar-backdrop {
 /* ============================================
    SIDEBAR NAV STYLING
    ============================================ */
+#sidebar .sidebar-nav {
+    padding: 0.5rem 0.625rem;
+}
+#sidebar .sidebar-nav .nav-item {
+    width: 100%;
+}
 #sidebar .sidebar-nav .nav-link {
-    color: rgba(255, 255, 255, 0.7) !important;
-    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.72) !important;
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 0.125rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.25;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 #sidebar .sidebar-nav .nav-link:hover {
     color: #fff !important;
-    background-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: rgba(255, 255, 255, 0.07) !important;
 }
 #sidebar .sidebar-nav .nav-link.active {
     color: #fff !important;
     background-color: var(--kesehatan-primary) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 #sidebar .sidebar-nav .nav-title {
-    color: rgba(255, 255, 255, 0.5) !important;
-    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45) !important;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding: 0.75rem 1rem 0.25rem;
+    padding: 0.5rem 0.75rem 0.35rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+/* Judul section pertama tidak perlu garis pemisah di atasnya */
+#sidebar .sidebar-nav .nav-title:first-child,
+#sidebar .sidebar-nav .nav-item + .nav-title {
+    margin-top: 0.5rem;
+}
+#sidebar .sidebar-nav > .nav-title:first-of-type {
+    margin-top: 0;
+    border-top: none;
 }
 #sidebar .sidebar-nav .nav-icon {
-    margin-right: 0.5rem;
+    margin-right: 0.625rem;
     width: 20px;
-    display: inline-block;
-    text-align: center;
+    flex: 0 0 20px;
+    font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+#sidebar .sidebar-nav .nav-link .badge {
+    margin-left: auto;
 }
 
 /* ============================================

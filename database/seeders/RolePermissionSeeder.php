@@ -125,72 +125,66 @@ class RolePermissionSeeder extends Seeder
 
     private array $rolePermissions = [
         'pasien' => [
+            // Master Obat: C,R (tanpa edit/delete — sesuai ketentuan)
             'master-obat.index',
             'master-obat.show',
             'master-obat.create',
-            'master-obat.edit',
             'jadwal-mo.index',
             'jadwal-mo.show',
             'jadwal-mo.create',
             'jadwal-mo.edit',
             'jadwal-cgd.index',
             'jadwal-cgd.show',
-            // Pengingat MO (bantu konfirmasi)
+            // Pengingat MO (bantu konfirmasi): C,R,U (tanpa delete)
             'pengingat-mo.index',
             'pengingat-mo.show',
             'pengingat-mo.create',
             'pengingat-mo.edit',
-            'pengingat-mo.delete',
 
-            // Pengingat CGD (konfirmasi sendiri)
+            // Pengingat CGD (konfirmasi sendiri): C,R,U (tanpa delete)
             'pengingat-cgd.index',
             'pengingat-cgd.show',
             'pengingat-cgd.create',
             'pengingat-cgd.edit',
-            'pengingat-cgd.delete',
 
             'riwayat.index',
         ],
 
         'pmo' => [
+            // Master Obat: C,R (tanpa edit/delete — sesuai ketentuan)
             'master-obat.index',
             'master-obat.show',
             'master-obat.create',
-            'master-obat.edit',
             'pasien-binaan.index',
             'pasien-binaan.show',
-            // Jadwal Minum Obat
+            // Jadwal Minum Obat: C,R,U (tanpa delete)
             'jadwal-mo.index',
             'jadwal-mo.show',
             'jadwal-mo.create',
             'jadwal-mo.edit',
-            'jadwal-mo.delete',
             'jadwal-cgd.index',
             'jadwal-cgd.show',
-            // Pengingat MO (bantu konfirmasi)
+            // Pengingat MO (bantu konfirmasi): C,R,U (tanpa delete)
             'pengingat-mo.index',
             'pengingat-mo.show',
             'pengingat-mo.create',
             'pengingat-mo.edit',
-            'pengingat-mo.delete',
 
-            // Pengingat CGD (bantu konfirmasi)
+            // Pengingat CGD (bantu konfirmasi): C,R,U (tanpa delete)
             'pengingat-cgd.index',
             'pengingat-cgd.show',
             'pengingat-cgd.create',
             'pengingat-cgd.edit',
-            'pengingat-cgd.delete',
 
             'riwayat.index',
         ],
 
         'admin' => [
-            // Master User
+            // Master User / Registrasi: C,R,U (tanpa delete — sesuai ketentuan)
             'master-user.index',
             'master-user.show',
             'master-user.create',
             'master-user.edit',
-            'master-user.delete',
 
             // Pasien PMO Mapping
             'pasien-pmo.index',
@@ -244,36 +238,21 @@ class RolePermissionSeeder extends Seeder
             'jadwal-cgd.edit',
             'jadwal-cgd.delete',
 
-            // Pengingat MO (bantu konfirmasi)
+            // Pengingat MO: R saja (monitoring — sesuai ketentuan)
             'pengingat-mo.index',
             'pengingat-mo.show',
-            'pengingat-mo.create',
-            'pengingat-mo.edit',
-            'pengingat-mo.delete',
 
-            // Pengingat CGD (bantu konfirmasi)
+            // Pengingat CGD: R saja (monitoring — sesuai ketentuan)
             'pengingat-cgd.index',
             'pengingat-cgd.show',
-            'pengingat-cgd.create',
-            'pengingat-cgd.edit',
-            'pengingat-cgd.delete',
 
-            // Konten
+            // Konten: R saja (kelola konten = hak Superadmin — sesuai ketentuan)
             'konten-pengumuman.index',
             'konten-pengumuman.show',
-            'konten-pengumuman.create',
-            'konten-pengumuman.edit',
-            'konten-pengumuman.delete',
             'konten-edukasi.index',
             'konten-edukasi.show',
-            'konten-edukasi.create',
-            'konten-edukasi.edit',
-            'konten-edukasi.delete',
             'konten-galery.index',
             'konten-galery.show',
-            'konten-galery.create',
-            'konten-galery.edit',
-            'konten-galery.delete',
             // Laporan
             'laporan-kepatuhan.index',
             // Pengaturan
